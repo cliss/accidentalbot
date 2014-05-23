@@ -2,7 +2,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#somechannel';
 
 var titles = [];
 var connections = [];

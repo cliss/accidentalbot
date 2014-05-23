@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <title>Showbot</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="/js/handlebars-v1.3.0.js"></script>
+        <script src="/js/showbot.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
+
+    </head>
+    <body>
+        <script id="titleRow" type="text/x-handlebars-template">
+            <tr data-id="{{id}}">
+                <td><span class="votes">{{votes}}</span>&nbsp;<a class="vote" href="#" onclick="return Showbot.Bot.voteHandler(this);">+1</a></td>
+                <td>{{title}}</td>
+                <td>{{author}}</td>
+                <td class="time" data-time="{{{time}}}">{{timeAgo time}}</td>
+            </tr>
+        </script>
+        <script id="linkRow" type="text/x-handlebars-template">
+            <tr data-id="{{id}}">
+                <td><a href="{{{link}}}" onclick="return Showbot.Bot.linkHandler(this);">Link</a></td>
+                <td>{{author}}</td>
+                <td class="time" data-time="{{{time}}}">{{timeAgo time}}</td>
+        </script>
+
+        <script id="connectingMessage" type="text/x-handlebars-template">
+            Connecting...
+        </script>
+
+        <div class="message" style='font-size: 500%; text-align: center; /* position: absolute; top: 50%; height: 2em; margin-top: -1em; width: 100%;*/'>
+        </div>
+
+        <h2>Titles</h2>
+        <table class="titles">
+            <thead>
+                <tr>
+                    <th>Votes</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <h2>Links</h2>
+        <table class="links">
+            <thead>
+                <tr>
+                    <th>Link</th>
+                    <th>Author</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <script type="text/javascript">
+            Showbot.Bot.init();
+        </script>
+    </body>
+</html>

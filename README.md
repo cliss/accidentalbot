@@ -5,4 +5,5 @@ Node/websockets based IRC bot.
 
 Work in progress.
 
-This requires a HTML5 client that isn't presently checked into this repository. At some point, it will be.
+In the webclient/ directory there is a javascript and HTML file that
+show the general idea behind how a client would work.
