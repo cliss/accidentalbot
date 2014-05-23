@@ -1,9 +1,8 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
-var fs = require('fs');
 
-var channel = '#atptest';
+var channel = '#atp';
 
 var titles = [];
 var connections = [];
@@ -55,11 +54,9 @@ function handleSendVotes(from, message) {
     var titlesByVote = titles.sortBy(function (t) {
         return t.votes;
     }, true).to(3);
-    console.log(JSON.stringify(titlesByVote));
 
     client.say(from, 'Three most popular titles:');
     for (var i = 0; i < titlesByVote.length; ++i) {
-        console.log(JSON.stringify(titlesByVote[i]));
         var votes = titlesByVote[i]['votes'];
         client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
     }
@@ -82,12 +79,12 @@ function handleNewLink(from, message) {
     }
 }
 
-function handleHelp(from, message) {
+function handleHelp(from) {
     client.say(from, 'Options:');
-    client.say('!s {title} - suggest a title.');
-    client.say('!votes - get the three most highly voted titles.')
-    client.say('!link {URL} - suggest a link.');
-    client.say('!help - see this message.');
+    client.say(from, '!s {title} - suggest a title.');
+    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!link {URL} - suggest a link.');
+    client.say(from, '!help - see this message.');
 }
 
 var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
@@ -108,6 +105,8 @@ client.addListener('message', function (from, to, message) {
         handleSendVotes(from, message);
     } else if (message.startsWith('!link')) {
         handleNewLink(from, message);
+    } else if (message.startsWith('!help')) {
+        handleHelp(from);
     }
 });
 
