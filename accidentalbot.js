@@ -1,11 +1,13 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var fs = require('fs');
 
 var channel = '#atptest';
 
 var titles = [];
 var connections = [];
+var links = [];
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
@@ -13,18 +15,22 @@ function sendToAll(packet) {
     });
 }
 
-var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
-    channels: [channel]
-});
+function saveBackup() {
+    // TODO: Figure out what to do here.
+}
 
-client.addListener('join', function (channel, nick, message) {
-    console.log('Joined channel ' + channel);
-});
+function handleNewSuggestion(from, message) {
+    if (message.startsWith('!suggest')) {
+        title = message.substring(9);
+    } else if (message.startsWith('!s')) {
+        title = message.substring(3);
+    }
 
-client.addListener('message', function (from, to, message) {
-    if (message.startsWith('!s')) {
-        var title = message.substring(3);
-
+    if (title.length > 75) {
+        client.say(from, 'That title is too long; please try again.');
+        title = '';
+    }
+    if (title.length > 0) {
         // Make sure this isn't a duplicate.
         if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
             var title = {
@@ -43,6 +49,66 @@ client.addListener('message', function (from, to, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
     }
+}
+
+function handleSendVotes(from, message) {
+    var titlesByVote = titles.sortBy(function (t) {
+        return t.votes;
+    }, true).to(3);
+    console.log(JSON.stringify(titlesByVote));
+
+    client.say(from, 'Three most popular titles:');
+    for (var i = 0; i < titlesByVote.length; ++i) {
+        console.log(JSON.stringify(titlesByVote[i]));
+        var votes = titlesByVote[i]['votes'];
+        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
+    }
+}
+
+function handleNewLink(from, message) {
+    message = message.substring(6);
+    if (message.startsWith('http')) {
+        var link = {
+            id: links.length,
+            author: from,
+            link: message,
+            time: new Date()
+        };
+        links.push(link);
+
+        sendToAll({operation: 'NEWLINK', link: link});
+    } else {
+        client.say(from, "That doesn't look like a link to me.");
+    }
+}
+
+function handleHelp(from, message) {
+    client.say(from, 'Options:');
+    client.say('!s {title} - suggest a title.');
+    client.say('!votes - get the three most highly voted titles.')
+    client.say('!link {URL} - suggest a link.');
+    client.say('!help - see this message.');
+}
+
+var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
+    channels: [channel]
+});
+
+client.addListener('join', function (channel, nick, message) {
+    console.log('Joined channel ' + channel);
+    setInterval(saveBackup, 300000);
+});
+
+client.addListener('message', function (from, to, message) {
+    var title = '';
+
+    if (message.startsWith('!s')) {
+        handleNewSuggestion(from, message);
+    } else if (message.startsWith("!votes")) {
+        handleSendVotes(from, message);
+    } else if (message.startsWith('!link')) {
+        handleNewLink(from, message);
+    }
 });
 
 client.addListener('error', function (message) {
@@ -58,7 +124,7 @@ var socketServer = new webSocket.Server({port: port});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titles}));
+    socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
     socket.on('close', function () {
         connections.splice(connections.indexOf(socket), 1);
@@ -74,8 +140,8 @@ socketServer.on('connection', function(socket) {
             } else {
                 console.log('no matches for id: ' + packet['id']);
             }
-        } else if (packet.operation === 'UPDATE') {
-            socket.send(JSON.stringify(titles));
+        } else if (packet.operation === 'PING') {
+            socket.send(JSON.stringify({operation: 'PONG'}));
         } else {
             console.log("Don't know what to do with " + packet['operation']);
         }
