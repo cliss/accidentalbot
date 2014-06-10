@@ -63,7 +63,12 @@ function handleSendVotes(from, message) {
 }
 
 function handleNewLink(from, message) {
-    message = message.substring(6);
+    if (message.startsWith('!link')) {
+        message = message.substring(6);
+    } else if (message.startsWith('!l')) {
+        message = message.substring(3);
+    }
+    
     if (message.startsWith('http')) {
         var link = {
             id: links.length,
@@ -103,7 +108,7 @@ client.addListener('message', function (from, to, message) {
         handleNewSuggestion(from, message);
     } else if (message.startsWith("!votes")) {
         handleSendVotes(from, message);
-    } else if (message.startsWith('!link')) {
+    } else if (message.startsWith('!l')) {
         handleNewLink(from, message);
     } else if (message.startsWith('!help')) {
         handleHelp(from);
