@@ -2,7 +2,8 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#somechannel';
+var channel = '#atp';
+var webAddress = 'http://www.caseyliss.com/showbot'
 
 var titles = [];
 var connections = [];
@@ -68,7 +69,7 @@ function handleNewLink(from, message) {
     } else if (message.startsWith('!l')) {
         message = message.substring(3);
     }
-    
+
     if (message.startsWith('http')) {
         var link = {
             id: links.length,
@@ -90,6 +91,7 @@ function handleHelp(from) {
     client.say(from, '!votes - get the three most highly voted titles.')
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
+    client.say(from, 'To see titles/links, go to: ' + webAddress);
 }
 
 var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
