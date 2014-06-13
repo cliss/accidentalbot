@@ -2,7 +2,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#atptest';
 var webAddress = 'http://www.caseyliss.com/showbot'
 
 var titles = [];
@@ -39,6 +39,7 @@ function handleNewSuggestion(from, message) {
                 title: title,
                 titleLower: title.toLowerCase(),
                 votes: 0,
+                votesBy: [],
                 time: new Date()
             };
             titles.push(title);
@@ -130,6 +131,7 @@ var socketServer = new webSocket.Server({port: port});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
+    var address = socket.upgradeReq.connection.remoteAddress;
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
     socket.on('close', function () {
@@ -140,9 +142,17 @@ socketServer.on('connection', function(socket) {
         var packet = JSON.parse(data);
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
+
             if (matches.length > 0) {
-                matches[0]['votes'] = new Number(matches[0]['votes']) + 1;
-                sendToAll({operation: 'VOTE', votes: matches[0]['votes'], id: matches[0]['id']});
+                var upvoted = matches[0];
+                if (upvoted['votesBy'].any(address) == false) {
+                    upvoted['votes'] = new Number(upvoted['votes']) + 1;
+                    upvoted['votesBy'].push(address);
+                    sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
+                    console.log('+1 for ' + upvoted['title'] + ' by ' + address);
+                } else {
+                    console.log('ignoring duplicate vote by ' + address + ' for ' + upvoted['title']);
+                }
             } else {
                 console.log('no matches for id: ' + packet['id']);
             }
