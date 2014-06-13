@@ -132,6 +132,16 @@ var socketServer = new webSocket.Server({port: port});
 socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = socket.upgradeReq.connection.remoteAddress;
+    var titlesWithVotes = titles.map(function (title) {
+        if (title.votesBy.any(address)) {
+            var newTitle = title;
+            newTitle['voted'] = true;
+            return newTitle;
+        } else {
+            return title;
+        }
+    });
+    console.log(JSON.stringify(titlesWithVotes));
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
     socket.on('close', function () {

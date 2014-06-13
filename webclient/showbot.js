@@ -47,7 +47,7 @@ Showbot.Bot = (function ($) {
 
 	function resetToDefault(){
 		$('.message').fadeOut(function () {
-			$('table').fadeIn();
+			$('.tables').fadeIn();
 		});
 	}
 
@@ -68,7 +68,7 @@ Showbot.Bot = (function ($) {
             if (window.location.hostname == 'localhost') {
                 connection = new WebSocket('ws://localhost:5001');
             } else {
-	            connection = new WebSocket('ws://some-web-socket-host');
+	            connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
             }
 
 			connection.onopen = function (event) {
@@ -78,16 +78,31 @@ Showbot.Bot = (function ($) {
 
 			connection.onmessage = function (message) {
 				var packet = JSON.parse(message.data);
-                console.log(JSON.stringify(packet));
+                //console.log(JSON.stringify(packet));
                 if (packet.operation == 'REFRESH') {
                     // Refresh everything
                     var titles = packet.titles;
     				$('.titles tbody').empty();
                     var html = "";
+					// Create all the rows
+					var titlesAlreadyVoted = [];
                     for (var i=0; i < titles.length; ++i) {
                         html += titleRowTemplate(titles[i]);
+						if (titles[i].voted) {
+							titlesAlreadyVoted.push(titles[i].id);
+						}
                     }
+
+					// Add to the table
                     $('.titles tbody').html(html);
+
+					// Remove all the anchors for already voted titles
+					console.log(JSON.stringify(titlesAlreadyVoted));
+					for (var i=0; i < titlesAlreadyVoted.length; ++i) {
+						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
+					}
+
+					// Show the table
                     if (!$('.titles').is(':visible')) {
                         $('.titles').fadeIn();
                     }
@@ -117,7 +132,7 @@ Showbot.Bot = (function ($) {
 			};
 
 			connection.onclose = function (event) {
-				$('table').fadeOut(function () {
+				$('.tables').fadeOut(function () {
                     $('.message').fadeIn();
                 });
                 setTimeout(connectSocket, 5000);
@@ -125,7 +140,7 @@ Showbot.Bot = (function ($) {
 			};
 
 			connection.onerror = function (error) {
-				alert("Error: " + error);
+				console.log("Error: " + JSON.stringify(error));
 			};
 		} else {
 			setTimeout(connectSocket, 5000);
