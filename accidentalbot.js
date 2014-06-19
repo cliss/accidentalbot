@@ -130,15 +130,12 @@ var socketServer = new webSocket.Server({port: port});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
-    var address = socket.upgradeReq.connection.remoteAddress;
-    var address = socket.upgradeReq.headers['x-forwarded-for'];
+    // This is valid for direct deployments, without routing/load balancing.
+     var address = socket.upgradeReq.connection.remoteAddress;
+    // This is valid for Heroku's routing. Your mileage may vary.
+    //var address = socket.upgradeReq.headers['x-forwarded-for'];
     console.log('Client connected: ' + address);
-    /* ["_socket","bytesReceived","readyState","supports","protocol","protocolVersion","upgradeReq","_isServer","_receiver","_sender","_events"]
-       SOCKET: ["_connecting","_handle","_readableState","readable","domain","_events","_maxListeners","_writableState","writable","allowHalfOpen","onend",
-     "destroyed","errorEmitted","bytesRead","_bytesDispatched","_pendingData","_pendingEncoding","server","_idleTimeout","_idleNext","_idlePrev",
-     "_idleStart","parser","ondata","_paused","pipe","addListener","on","pause","resume","read","_consuming","_peername"]
-    */
-    console.log(JSON.stringify(Object.keys(socket.upgradeReq.headers)));
+    console.log(JSON.stringify(titles, undefined, 2));
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
             var newTitle = title;
@@ -151,6 +148,7 @@ socketServer.on('connection', function(socket) {
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
     socket.on('close', function () {
+        console.log('Client disconnected: ' + address);
         connections.splice(connections.indexOf(socket), 1);
     });
 
