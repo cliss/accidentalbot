@@ -2,7 +2,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atptest';
+var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot'
 
 var titles = [];
@@ -135,10 +135,8 @@ socketServer.on('connection', function(socket) {
     // This is valid for Heroku's routing. Your mileage may vary.
     var address = socket.upgradeReq.headers['x-forwarded-for'];
     console.log('Client connected: ' + address);
-    console.log(JSON.stringify(titles));//, undefined, 2));
     var titlesWithVotes = titles.map(function (title) {
         var isVoted = title.votesBy.some(function (testAddress) {
-            console.log(testAddress + (testAddress === address ? ' = ' : ' <> ') + address);
             return testAddress === address;
         });
         var newTitle = Object.clone(title, true);
