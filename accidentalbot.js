@@ -145,7 +145,7 @@ socketServer.on('connection', function(socket) {
         newTitle.voted = isVoted;
         return newTitle;
     });
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titleWithVotes, links: links}));
+    socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
 
     socket.on('close', function () {
         console.log('Client disconnected: ' + address);
