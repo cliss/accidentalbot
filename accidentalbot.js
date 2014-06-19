@@ -137,16 +137,13 @@ socketServer.on('connection', function(socket) {
     console.log('Client connected: ' + address);
     console.log(JSON.stringify(titles));//, undefined, 2));
     var titlesWithVotes = titles.map(function (title) {
-        var isVoted = title.votesBy.any(function (testAddress) {
+        var isVoted = title.votesBy.some(function (testAddress) {
+            console.log(testAddress + (testAddress === address ? ' = ' : ' <> ') + address);
             return testAddress === address;
         });
-        if (isVoted) {
-            var newTitle = title;
-            newTitle['voted'] = true;
-            return newTitle;
-        } else {
-            return title;
-        }
+        var newTitle = Object.clone(title, true);
+        newTitle.voted = isVoted;
+        return newTitle;
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
