@@ -135,7 +135,7 @@ socketServer.on('connection', function(socket) {
     // This is valid for Heroku's routing. Your mileage may vary.
     var address = socket.upgradeReq.headers['x-forwarded-for'];
     console.log('Client connected: ' + address);
-    //console.log(JSON.stringify(titles, undefined, 2));
+    console.log(JSON.stringify(titles));//, undefined, 2));
     var titlesWithVotes = titles.map(function (title) {
         var isVoted = title.votesBy.any(function (testAddress) {
             return testAddress === address;
