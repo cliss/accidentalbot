@@ -130,9 +130,10 @@ var socketServer = new webSocket.Server({port: port});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
-    //var address = socket.upgradeReq.connection.remoteAddress;
-    var address = socket.headers['X-Forwarded-For'];
+    var address = socket.upgradeReq.connection.remoteAddress;
+    //var address = socket.headers['X-Forwarded-For'];
     console.log('Client connected: ' + address);
+    console.log(JSON.stringify(socket.headers));
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
             var newTitle = title;
