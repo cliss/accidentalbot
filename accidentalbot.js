@@ -2,7 +2,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#atptest';
 var webAddress = 'http://www.caseyliss.com/showbot'
 
 var titles = [];
@@ -131,9 +131,14 @@ var socketServer = new webSocket.Server({port: port});
 socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = socket.upgradeReq.connection.remoteAddress;
-    //var address = socket.headers['X-Forwarded-For'];
+    var address = socket.upgradeReq.headers['X-Forwarded-For'];
     console.log('Client connected: ' + address);
-    console.log(JSON.stringify(socket.options.headers));
+    /* ["_socket","bytesReceived","readyState","supports","protocol","protocolVersion","upgradeReq","_isServer","_receiver","_sender","_events"]
+       SOCKET: ["_connecting","_handle","_readableState","readable","domain","_events","_maxListeners","_writableState","writable","allowHalfOpen","onend",
+     "destroyed","errorEmitted","bytesRead","_bytesDispatched","_pendingData","_pendingEncoding","server","_idleTimeout","_idleNext","_idlePrev",
+     "_idleStart","parser","ondata","_paused","pipe","addListener","on","pause","resume","read","_consuming","_peername"]
+    */
+    console.log(JSON.stringify(Object.keys(socket.upgradeReq.headers)));
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
             var newTitle = title;
