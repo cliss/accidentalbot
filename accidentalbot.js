@@ -133,7 +133,7 @@ socketServer.on('connection', function(socket) {
     var address = socket.upgradeReq.connection.remoteAddress;
     //var address = socket.headers['X-Forwarded-For'];
     console.log('Client connected: ' + address);
-    console.log(JSON.stringify(socket.headers));
+    console.log(JSON.stringify(socket.options.headers));
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
             var newTitle = title;
