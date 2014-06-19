@@ -131,9 +131,9 @@ var socketServer = new webSocket.Server({port: port});
 socketServer.on('connection', function(socket) {
     connections.push(socket);
     // This is valid for direct deployments, without routing/load balancing.
-     var address = socket.upgradeReq.connection.remoteAddress;
+    // var address = socket.upgradeReq.connection.remoteAddress;
     // This is valid for Heroku's routing. Your mileage may vary.
-    //var address = socket.upgradeReq.headers['x-forwarded-for'];
+    var address = socket.upgradeReq.headers['x-forwarded-for'];
     console.log('Client connected: ' + address);
     console.log(JSON.stringify(titles, undefined, 2));
     var titlesWithVotes = titles.map(function (title) {
