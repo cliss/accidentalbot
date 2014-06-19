@@ -131,7 +131,7 @@ var socketServer = new webSocket.Server({port: port});
 socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = socket.upgradeReq.connection.remoteAddress;
-    var address = socket.upgradeReq.headers['X-Forwarded-For'];
+    var address = socket.upgradeReq.headers['x-forwarded-for'];
     console.log('Client connected: ' + address);
     /* ["_socket","bytesReceived","readyState","supports","protocol","protocolVersion","upgradeReq","_isServer","_receiver","_sender","_events"]
        SOCKET: ["_connecting","_handle","_readableState","readable","domain","_events","_maxListeners","_writableState","writable","allowHalfOpen","onend",
