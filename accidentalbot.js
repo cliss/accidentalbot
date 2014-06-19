@@ -20,6 +20,7 @@ function saveBackup() {
 }
 
 function handleNewSuggestion(from, message) {
+    var title = '';
     if (message.startsWith('!suggest')) {
         title = message.substring(9);
     } else if (message.startsWith('!s')) {
@@ -105,8 +106,6 @@ client.addListener('join', function (channel, nick, message) {
 });
 
 client.addListener('message', function (from, to, message) {
-    var title = '';
-
     if (message.startsWith('!s')) {
         handleNewSuggestion(from, message);
     } else if (message.startsWith("!votes")) {
@@ -131,7 +130,9 @@ var socketServer = new webSocket.Server({port: port});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
-    var address = socket.upgradeReq.connection.remoteAddress;
+    //var address = socket.upgradeReq.connection.remoteAddress;
+    var address = socket.headers['X-Forwarded-For'];
+    console.log('Client connected: ' + address);
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
             var newTitle = title;
@@ -141,7 +142,6 @@ socketServer.on('connection', function(socket) {
             return title;
         }
     });
-    console.log(JSON.stringify(titlesWithVotes));
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
 
     socket.on('close', function () {
