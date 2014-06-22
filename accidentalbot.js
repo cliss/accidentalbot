@@ -162,7 +162,7 @@ socketServer.on('connection', function(socket) {
             if (matches.length > 0) {
                 var upvoted = matches[0];
                 if (upvoted['votesBy'].any(address) == false) {
-                    upvoted['votes'] = new Number(upvoted['votes']) + 1;
+                    upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'].push(address);
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
                     console.log('+1 for ' + upvoted['title'] + ' by ' + address);
