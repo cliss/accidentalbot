@@ -28,10 +28,6 @@ function handleNewSuggestion(from, message) {
         title = message.substring(3);
     }
 
-    if (title.length > 75) {
-        client.say(from, 'That title is too long; please try again.');
-        title = '';
-    }
     if (title.length > 0) {
         // Make sure this isn't a duplicate.
         if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
@@ -51,6 +47,9 @@ function handleNewSuggestion(from, message) {
             //client.say(channel, 'Sorry, ' + from + ', your title is a duplicate. Please try another!');
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
+    if (title.length <= 0 || title.length > 75) {
+        client.say(from, 'Invalid title length; please try again.');
+        return;
     }
 }
 
