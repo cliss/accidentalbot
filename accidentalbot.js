@@ -171,7 +171,7 @@ socketServer.on('connection', function(socket) {
                 console.log('no matches for id: ' + packet['id']);
             }
         } else if (packet.operation === 'PING') {
-            socket.send(JSON.stringify({operation: 'PONG'}));
+            // do nothing
         } else {
             console.log("Don't know what to do with " + packet['operation']);
         }
