@@ -197,12 +197,22 @@ socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = getRequestAddress(socket.upgradeReq);
     console.log('Client connected: ' + address);
+
+    // Instead of sending all of the information about current titles to the
+    // newly-connecting user, which would include the IP addresses of other
+    // users, we just send down the information they need.
     var titlesWithVotes = titles.map(function (title) {
         var isVoted = title.votesBy.some(function (testAddress) {
             return testAddress === address;
         });
-        var newTitle = Object.clone(title, true);
-        newTitle.voted = isVoted;
+        var newTitle = {
+            id: title.id,
+            author: title.author,
+            title: title.title,
+            votes: title.votes,
+            voted: isVoted,
+            time: title.time
+        };
         return newTitle;
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
