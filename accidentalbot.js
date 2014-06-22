@@ -30,8 +30,7 @@ function handleNewSuggestion(from, message) {
     if (title.length > 75) {
         client.say(from, 'That title is too long; please try again.');
         title = '';
-    }
-    if (title.length > 0) {
+    } else if (title.length > 0) {
         // Make sure this isn't a duplicate.
         if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
             var title = {
