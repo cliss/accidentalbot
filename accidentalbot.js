@@ -145,7 +145,7 @@ socketServer.on('connection', function(socket) {
     // This is valid for direct deployments, without routing/load balancing.
     // var address = socket.upgradeReq.connection.remoteAddress;
     // This is valid for Heroku's routing. Your mileage may vary.
-    var address = socket.upgradeReq.headers['x-forwarded-for'];
+    var address = socket.upgradeReq.headers['x-forwarded-for'] || '127.0.0.1';
     console.log('Client connected: ' + address);
     var titlesWithVotes = titles.map(function (title) {
         var isVoted = title.votesBy.some(function (testAddress) {
