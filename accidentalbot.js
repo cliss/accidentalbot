@@ -147,11 +147,9 @@ socketServer.on('connection', function(socket) {
     // This is valid for Heroku's routing. Your mileage may vary.
     var address = socket.upgradeReq.headers['x-forwarded-for'] || '127.0.0.1';
     console.log('Client connected: ' + address);
-    var titlesWithVotes = titles.map(function (title) {
-        var isVoted = title.votesBy.some(function (testAddress) {
-            return testAddress === address;
-        });
-        var newTitle = Object.clone(title, true);
+    var titlesWithVotes = Object.map(titles, function (title) {
+        var isVoted = titles[title]['votesBy'].hasOwnProperty(address);
+        var newTitle = Object.clone(titles[title], true);
         newTitle.voted = isVoted;
         return newTitle;
     });
