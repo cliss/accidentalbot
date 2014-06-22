@@ -152,18 +152,21 @@ socketServer.on('connection', function(socket) {
 
     var address = getRequestAddress(socket.upgradeReq);
 
-    var titlesWithVotes = titles.map(function (title) {
-        if (title.votesBy.any(address)) {
-            // we copy, not reference, the existing address object
-            var newTitle = JSON.parse(JSON.stringify(title));
-            newTitle['voted'] = true;
-            return newTitle;
-        } else {
-            return title;
-        }
+    // Instead of sending all of the information about current titles to the
+    // newly-connecting user, which would include the IP addresses of other
+    // users, we just send down the information they need.
+    var existingTitlesForUser = titles.map(function (title) {
+        return {
+            id: title.id,
+            author: title.author,
+            title: title.title,
+            votes: title.votes,
+            voted: title.votesBy.any(address),
+            time: title.time
+        };
     });
-    console.log(JSON.stringify(titlesWithVotes));
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
+    console.log(JSON.stringify(existingTitlesForUser));
+    socket.send(JSON.stringify({operation: 'REFRESH', titles: existingTitlesForUser, links: links}));
 
     socket.on('close', function () {
         connections.splice(connections.indexOf(socket), 1);
