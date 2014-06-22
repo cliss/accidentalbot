@@ -27,11 +27,15 @@
   },
   "engines": {
     "node": "0.10.x"
-  }
+  },
   "contributors": [
       {
-          "name": "Ben Elsen",
-          "url": "http://benelsen.com/"
+          "name": "Jeremy Banks",
+          "url": "http://www.jeremybanks.ca/"
+      },
+      {
+          "name": "Dave Eilers",
+          "url": "https://www.facebook.com/david.eilers"
       }
   ],
   "bugs": "https://github.com/cliss/accidentalbot/issues",
