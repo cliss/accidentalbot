@@ -17,7 +17,7 @@
         </script>
         <script id="linkRow" type="text/x-handlebars-template">
             <tr data-id="{{id}}">
-                <td><a href="{{{link}}}" onclick="return Showbot.Bot.linkHandler(this);">Link</a></td>
+                <td><a href="{{{link}}}" onclick="return Showbot.Bot.linkHandler(this);">{{link}}</a></td>
                 <td>{{author}}</td>
                 <td class="time" data-time="{{{time}}}">{{timeAgo time}}</td>
         </script>
