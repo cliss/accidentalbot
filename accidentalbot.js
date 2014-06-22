@@ -151,6 +151,10 @@ socketServer.on('connection', function(socket) {
     });
 
     socket.on('message', function (data, flags) {
+        if (flags.binary) {
+            console.log("ignoring binary message from "  + address);
+            return;
+        }
         var packet = JSON.parse(data);
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
