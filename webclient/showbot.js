@@ -86,18 +86,20 @@ Showbot.Bot = (function ($) {
                     var html = "";
 					// Create all the rows
 					var titlesAlreadyVoted = [];
-                    for (var i=0; i < titles.length; ++i) {
-                        html += titleRowTemplate(titles[i]);
-						if (titles[i].voted) {
-							titlesAlreadyVoted.push(titles[i].id);
-						}
-                    }
 
+					for (titleidx in titles) {
+						titles[titleidx].id = titleidx;
+						html += titleRowTemplate(titles[titleidx]);
+						if (titles[titleidx].voted) {
+							titlesAlreadyVoted.push(titleidx);
+						}
+					}
 					// Add to the table
                     $('.titles tbody').html(html);
 
 					// Remove all the anchors for already voted titles
 					console.log(JSON.stringify(titlesAlreadyVoted));
+
 					for (var i=0; i < titlesAlreadyVoted.length; ++i) {
 						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
 					}
@@ -109,18 +111,25 @@ Showbot.Bot = (function ($) {
 
                     var links = packet['links'];
                     html = '';
-                    for (var i=0; i < links.length; ++i) {
-                        html += linkRowTemplate(links[i]);
-                    }
+					for (linkidx in links) {
+						links[linkidx].id = linkidx;
+                        html += linkRowTemplate(links[linkidx]);
+					}
                     $('.links tbody').html(html);
                     if (!$('.links').is(':visible')) {
                         $('.links').fadeIn();
                     }
                 } else if (packet.operation == 'NEW') {
                     // New title
-                    $('.titles tbody').append(titleRowTemplate(packet.title));
+					for (titleidx in packet.title) {
+						packet.title[titleidx].id = titleidx;
+						$('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
+					}
                 } else if (packet.operation == 'NEWLINK') {
-                    $('.links tbody').append(linkRowTemplate(packet.link));
+					for (linkidx in packet.link) {
+						packet.link[linkidx].id = linkidx;
+						$('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
+					}
                 } else if (packet.operation == 'VOTE') {
                     // Modify a vote
                     var row = $('tr[data-id=' + packet.id + ']');
