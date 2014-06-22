@@ -1,9 +1,11 @@
+'use strict';
+
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
 var channel = '#atp';
-var webAddress = 'http://www.caseyliss.com/showbot'
+var webAddress = 'http://www.caseyliss.com/showbot';
 
 var titles = [];
 var connections = [];
@@ -34,7 +36,7 @@ function handleNewSuggestion(from, message) {
     if (title.length > 0) {
         // Make sure this isn't a duplicate.
         if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
-            var title = {
+            title = {
                 id: titles.length,
                 author: from,
                 title: title,
@@ -90,7 +92,7 @@ function handleNewLink(from, message) {
 function handleHelp(from) {
     client.say(from, 'Options:');
     client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
