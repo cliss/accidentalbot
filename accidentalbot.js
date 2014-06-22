@@ -54,15 +54,50 @@ function handleNewSuggestion(from, message) {
     }
 }
 
+// this is deserving of a better algorithm
+// but, I was in a rush and didn't want to use anything fancy
 function handleSendVotes(from, message) {
-    var titlesByVote = titles.sortBy(function (t) {
-        return t.votes;
-    }, true).to(3);
+    var titlesByVote = [];
+    var votes1 = 0;
+    var item1 = '';
+    var votes2 = 0;
+    var item2 = '';
+    var votes3 = 0;
+    var item3 = '';
+
+    for (title in titles) {
+        if (titles[title].votes > votes1) {
+            votes3 = votes2;
+            votes2 = votes1;
+            item3 = item2;
+            item2 = item1;
+            votes1 = titles[title].votes;
+            item1 = title;
+        } else {
+            if (titles[title].votes > votes2) {
+                votes3 = votes2;
+                item3 = item2;
+                votes2 = titles[title].votes;
+                item2 = title;
+            } else {
+                if (titles[title].votes > votes3) {
+                    votes3 = titles[title].votes;
+                    item3 = title;
+                }
+            }
+        }
+    }
 
     client.say(from, 'Three most popular titles:');
-    for (var i = 0; i < titlesByVote.length; ++i) {
-        var votes = titlesByVote[i]['votes'];
-        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
+
+    if (votes1 > 0) {
+        client.say(from, votes1 + ' vote' + (votes1 != 1 ? 's' : '') +  ': " ' + titles[item1].title + '"');
+    }
+    if (votes2 > 0) {
+        client.say(from, votes2 + ' vote' + (votes2 != 1 ? 's' : '') +  ': " ' + titles[item2].title + '"');
+    }
+    if (votes3 > 0) {
+        client.say(from, votes3 + ' vote' + (votes3 != 1 ? 's' : '') +  ': " ' + titles[item3].title + '"');
     }
 }
 
