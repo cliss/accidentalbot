@@ -32,26 +32,26 @@ function handleNewSuggestion(from, message) {
         client.say(from, 'Invalid title length; please try again.');
         return;
     }
-    var shatitle = crypto.createHash('sha1').update(title.toLowerCase()).digest('hex');
+    var shaTitle = crypto.createHash('sha1').update(title.toLowerCase()).digest('hex');
 
-	// Make sure this isn't a duplicate.
-	if (!titles.hasOwnProperty(shatitle)) {
-		var title = {
-			author: from,
-			title: title,
-			titleLower: title.toLowerCase(),
-			votes: 0,
-			votesBy: {},
-			time: new Date()
-		};
-		titles[shatitle] = title;
-		var data = {};
-		data[shatitle] = title;
+    // Make sure this isn't a duplicate.
+    if (!titles.hasOwnProperty(shaTitle)) {
+        var title = {
+            author: from,
+            title: title,
+            titleLower: title.toLowerCase(),
+            votes: 0,
+            votesBy: {},
+            time: new Date()
+        };
+        titles[shaTitle] = title;
+        var data = {};
+        data[shaTitle] = title;
 
-		sendToAll({operation: 'NEW', title: data});
-	} else {
-		client.say(from, 'Sorry, your title is a duplicate. Please try another!');
-	}
+        sendToAll({operation: 'NEW', title: data});
+    } else {
+        client.say(from, 'Sorry, your title is a duplicate. Please try another!');
+    }
 }
 
 function handleSendVotes(from, message) {
@@ -76,24 +76,24 @@ function handleNewLink(from, message) {
         client.say(from, 'Invalid link length; please try again.');
         return;
     }
-    var shalink = crypto.createHash('sha1').update(message.toLowerCase()).digest('hex');
+    var shaLink = crypto.createHash('sha1').update(message.toLowerCase()).digest('hex');
 
     if (message.startsWith('http')) {
-		// Make sure this isn't a duplicate.
-		if (!links.hasOwnProperty(shalink)) {
-			var link = {
-				author: from,
-				link: message,
-				time: new Date()
-			};
-			links[shalink] = link;
-			var data = {};
-			data[shalink] = link;
+        // Make sure this isn't a duplicate.
+        if (!links.hasOwnProperty(shaLink)) {
+            var link = {
+                author: from,
+                link: message,
+                time: new Date()
+            };
+            links[shaLink] = link;
+            var data = {};
+            data[shaLink] = link;
 
-			sendToAll({operation: 'NEWLINK', link: data});
-		} else {
-			client.say(from, 'Sorry, your link is a duplicate. Please try another!');
-		}
+            sendToAll({operation: 'NEWLINK', link: data});
+        } else {
+            client.say(from, 'Sorry, your link is a duplicate. Please try another!');
+        }
     } else {
         client.say(from, "That doesn't look like a link to me.");
     }
@@ -171,7 +171,7 @@ socketServer.on('connection', function(socket) {
                 var upvoted = titles[packet['id']];
                 
                 // Has this IP voted for this title?
-            	if (!upvoted['votesBy'].hasOwnProperty(address)) {
+                if (!upvoted['votesBy'].hasOwnProperty(address)) {
                     upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'][address] = true;
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: packet['id']});
