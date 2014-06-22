@@ -1,6 +1,8 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var express = require('express');
+var http = require('http');
 
 var channel = '#atptest';
 var webAddress = 'http://www.caseyliss.com/showbot'
@@ -123,11 +125,27 @@ client.addListener('error', function (message) {
 });
 
 /***************************************************
+ * HTTP SERVER                                     *
+ ***************************************************/
+
+var app = express();
+
+app.use(express.static( __dirname + "/webclient"));
+
+app.get('/', function(req, res) {
+    res.redirect('/showbot.html');
+});
+
+var server = http.createServer(app);
+
+var port = Number(process.env.PORT || 5001);
+server.listen(port);
+
+/***************************************************
  * WEB SOCKETS                                     *
  ***************************************************/
 
-var port = Number(process.env.PORT || 5001);
-var socketServer = new webSocket.Server({port: port});
+var socketServer = new webSocket.Server({server: server});
 
 socketServer.on('connection', function(socket) {
     connections.push(socket);
