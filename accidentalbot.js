@@ -1,9 +1,11 @@
+'use strict';
+
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
 var channel = '#atptest';
-var webAddress = 'http://www.caseyliss.com/showbot'
+var webAddress = 'http://www.caseyliss.com/showbot';
 
 var titles = [];
 var connections = [];
@@ -20,24 +22,26 @@ function saveBackup() {
 }
 
 function handleNewSuggestion(from, message) {
+    var titleValue;
+
     if (message.startsWith('!suggest')) {
-        title = message.substring(9);
+        titleValue = message.substring(9);
     } else if (message.startsWith('!s')) {
-        title = message.substring(3);
+        titleValue = message.substring(3);
     }
 
-    if (title.length > 75) {
+    if (titleValue.length > 75) {
         client.say(from, 'That title is too long; please try again.');
-        title = '';
+        titleValue = '';
     }
-    if (title.length > 0) {
+    if (titleValue.length > 0) {
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
+        if (titles.findAll({titleLower: titleValue.toLowerCase()}).length === 0) {
             var title = {
                 id: titles.length,
                 author: from,
-                title: title,
-                titleLower: title.toLowerCase(),
+                title: titleValue,
+                titleLower: titleValue.toLowerCase(),
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -89,7 +93,7 @@ function handleNewLink(from, message) {
 function handleHelp(from) {
     client.say(from, 'Options:');
     client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
@@ -156,7 +160,7 @@ socketServer.on('connection', function(socket) {
             if (matches.length > 0) {
                 var upvoted = matches[0];
                 if (upvoted['votesBy'].any(address) == false) {
-                    upvoted['votes'] = new Number(upvoted['votes']) + 1;
+                    upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'].push(address);
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
                     console.log('+1 for ' + upvoted['title'] + ' by ' + address);
