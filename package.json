@@ -28,4 +28,11 @@
   "engines": {
     "node": "0.10.x"
   }
+  "contributors": [
+      {
+          "name": "Ben Elsen",
+          "url": "http://benelsen.com/"
+      }
+  ],
+  "bugs": "https://github.com/cliss/accidentalbot/issues",
 }
