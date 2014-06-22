@@ -125,9 +125,6 @@ Showbot.Bot = (function ($) {
                     // Modify a vote
                     var row = $('tr[data-id=' + packet.id + ']');
                     var span = $(row).find('.votes').html(packet.votes);
-                } else if (packet.operation == 'PONG') {
-                    // NOOP
-                    console.log('PONG');
                 }
 			};
 
