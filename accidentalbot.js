@@ -51,6 +51,7 @@ function handleNewSuggestion(from, message) {
         client.say(from, 'Invalid title length; please try again.');
         return;
     }
+    var shatitle = crypto.createHash('sha1').update(title.toLowerCase()).digest('hex');
 }
 
 function handleSendVotes(from, message) {
