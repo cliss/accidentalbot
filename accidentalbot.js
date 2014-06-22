@@ -154,7 +154,8 @@ socketServer.on('connection', function(socket) {
 
     var titlesWithVotes = titles.map(function (title) {
         if (title.votesBy.any(address)) {
-            var newTitle = title;
+            // we copy, not reference, the existing address object
+            var newTitle = JSON.parse(JSON.stringify(title));
             newTitle['voted'] = true;
             return newTitle;
         } else {
@@ -162,7 +163,7 @@ socketServer.on('connection', function(socket) {
         }
     });
     console.log(JSON.stringify(titlesWithVotes));
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
+    socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
 
     socket.on('close', function () {
         connections.splice(connections.indexOf(socket), 1);
