@@ -6,9 +6,9 @@ var crypto = require('crypto');
 var channel = '#atptest';
 var webAddress = 'http://www.caseyliss.com/showbot'
 
-var titles = [];
+var titles = {};
+var links = {};
 var connections = [];
-var links = [];
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
