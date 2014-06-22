@@ -167,14 +167,14 @@ socketServer.on('connection', function(socket) {
         }
         var packet = JSON.parse(data);
         if (packet.operation === 'VOTE') {
-            var matches = titles.findAll({id: packet['id']});
-
-            if (matches.length > 0) {
-                var upvoted = matches[0];
-                if (upvoted['votesBy'].any(address) == false) {
+            if (titles.hasOwnProperty(packet['id'])) {
+                var upvoted = titles[packet['id']];
+                
+                // Has this IP voted for this title?
+            	if (!upvoted['votesBy'].hasOwnProperty(address)) {
                     upvoted['votes'] = Number(upvoted['votes']) + 1;
-                    upvoted['votesBy'].push(address);
-                    sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
+                    upvoted['votesBy'][address] = true;
+                    sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: packet['id']});
                     console.log('+1 for ' + upvoted['title'] + ' by ' + address);
                 } else {
                     console.log('ignoring duplicate vote by ' + address + ' for ' + upvoted['title']);
