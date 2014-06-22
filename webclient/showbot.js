@@ -1,4 +1,6 @@
-var Showbot = Showbot || {};
+'use strict';
+
+window.Showbot = window.Showbot || {};
 
 Showbot.Bot = (function ($) {
 
@@ -31,7 +33,7 @@ Showbot.Bot = (function ($) {
         var id = $(anchor).closest('tr').data('id');
         connection.send(JSON.stringify({operation: 'VOTE', id: id}));
         var voteSpan = $(anchor).parent().find('.votes');
-        voteSpan.html(new Number(voteSpan.html()) + 1);
+        voteSpan.html(Number(voteSpan.html()) + 1);
         $(anchor).remove();
         return false;
     }
