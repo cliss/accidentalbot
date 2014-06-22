@@ -72,17 +72,28 @@ function handleNewLink(from, message) {
     } else if (message.startsWith('!l')) {
         message = message.substring(3);
     }
+    if (message.length <= 0 || message.length > 512) { // arbitrary upper limit to keep things happy
+        client.say(from, 'Invalid link length; please try again.');
+        return;
+    }
+    var shalink = crypto.createHash('sha1').update(message.toLowerCase()).digest('hex');
 
     if (message.startsWith('http')) {
-        var link = {
-            id: links.length,
-            author: from,
-            link: message,
-            time: new Date()
-        };
-        links.push(link);
+		// Make sure this isn't a duplicate.
+		if (!links.hasOwnProperty(shalink)) {
+			var link = {
+				author: from,
+				link: message,
+				time: new Date()
+			};
+			links[shalink] = link;
+			var data = {};
+			data[shalink] = link;
 
-        sendToAll({operation: 'NEWLINK', link: link});
+			sendToAll({operation: 'NEWLINK', link: data});
+		} else {
+			client.say(from, 'Sorry, your link is a duplicate. Please try another!');
+		}
     } else {
         client.say(from, "That doesn't look like a link to me.");
     }
