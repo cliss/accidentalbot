@@ -89,7 +89,7 @@ Showbot.Bot = (function ($) {
 					// Create all the rows
 					var titlesAlreadyVoted = [];
 
-					for (titleidx in titles) {
+					for (var titleidx in titles) {
 						titles[titleidx].id = titleidx;
 						html += titleRowTemplate(titles[titleidx]);
 						if (titles[titleidx].voted) {
@@ -113,7 +113,7 @@ Showbot.Bot = (function ($) {
 
                     var links = packet['links'];
                     html = '';
-					for (linkidx in links) {
+					for (var linkidx in links) {
 						links[linkidx].id = linkidx;
                         html += linkRowTemplate(links[linkidx]);
 					}
@@ -123,12 +123,12 @@ Showbot.Bot = (function ($) {
                     }
                 } else if (packet.operation == 'NEW') {
                     // New title
-					for (titleidx in packet.title) {
+					for (var titleidx in packet.title) {
 						packet.title[titleidx].id = titleidx;
 						$('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
 					}
                 } else if (packet.operation == 'NEWLINK') {
-					for (linkidx in packet.link) {
+					for (var linkidx in packet.link) {
 						packet.link[linkidx].id = linkidx;
 						$('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
 					}

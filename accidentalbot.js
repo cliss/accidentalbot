@@ -66,7 +66,7 @@ function handleSendVotes(from, message) {
     var votes3 = 0;
     var item3 = '';
 
-    for (title in titles) {
+    for (var title in titles) {
         if (titles[title].votes > votes1) {
             votes3 = votes2;
             votes2 = votes1;
