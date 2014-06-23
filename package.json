@@ -21,7 +21,7 @@
     "sugar": "^1.4.1",
     "ws": "^0.4.31",
     "bloomfilter": "^0.0.14",
-    "memjs": "^0.8.4",
+    "memjs": "^0.8.4"
   },
   "repository": {
       "type": "git",
