@@ -36,6 +36,14 @@
       {
           "name": "Dave Eilers",
           "url": "https://www.facebook.com/david.eilers"
+      },
+      {
+          "name": "Kyle Cronin",
+          "url": "http://kylecronin.me/"
+      },
+      {
+          "name": "Brad Choate",
+          "url": "http://bradchoate.com/"
       }
   ],
   "bugs": "https://github.com/cliss/accidentalbot/issues"

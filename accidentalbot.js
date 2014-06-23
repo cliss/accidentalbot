@@ -1,10 +1,13 @@
+'use strict';
+
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 var crypto = require('crypto');
 
 var channel = '#atp';
-var webAddress = 'http://www.caseyliss.com/showbot'
+var webAddress = 'http://www.caseyliss.com/showbot';
+var TITLE_LIMIT = 75;
 
 var titles = {};
 var links = {};
@@ -22,13 +25,11 @@ function saveBackup() {
 
 function handleNewSuggestion(from, message) {
     var title = '';
-    if (message.startsWith('!suggest')) {
-        title = message.substring(9);
-    } else if (message.startsWith('!s')) {
-        title = message.substring(3);
+    if (message.match(/^!s(?:uggest)?\s+(.+)/)) {
+        title = RegExp.$1.compact();
     }
 
-    if (title.length <= 0 || title.length > 75) {
+    if (title.length <= 0 || title.length > TITLE_LIMIT) {
         client.say(from, 'Invalid title length; please try again.');
         return;
     }
@@ -137,7 +138,7 @@ function handleNewLink(from, message) {
 function handleHelp(from) {
     client.say(from, 'Options:');
     client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
@@ -165,7 +166,7 @@ client.addListener('message', function (from, to, message) {
 });
 
 client.addListener('error', function (message) {
-    console.log('error: ', message)
+    console.log('error: ', message);
 });
 
 /***************************************************
@@ -173,7 +174,7 @@ client.addListener('error', function (message) {
  ***************************************************/
 
 var port = Number(process.env.PORT || 5001);
-var proxied = process.env.PROXIED !== 'false';
+var proxied = process.env.PROXIED === 'true';
 var socketServer = new webSocket.Server({port: port});
 
 // DOS protection - we disconnect any address which sends more than windowLimit
@@ -246,8 +247,15 @@ socketServer.on('connection', function(socket) {
     console.log('Client connected: ' + address);
     var titlesWithVotes = Object.map(titles, function (title) {
         var isVoted = titles[title]['votesBy'].hasOwnProperty(address);
-        var newTitle = Object.clone(titles[title], true);
-        newTitle.voted = isVoted;
+//        var newTitle = Object.clone(titles[title], true);
+        var newTitle = {};
+        newTitle[title] = {
+            author: titles[title].author,
+            title: titles[title].title,
+            votes: titles[title].votes,
+            voted: isVoted,
+            time: titles[title].time
+        };
         return newTitle;
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
