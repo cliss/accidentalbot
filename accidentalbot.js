@@ -15,34 +15,34 @@ var connections = [];
 
 // A cache is just an object with get(id, callback) and set(id, value) properties
 // This is just an example that is backed by a JS object
-// var cache = (function () {
-//     var data = {};
-//     return {
-//         get: function (id, callback) {
-//             callback(data[id] ? data[id].toString() : data[id]);
-//         },
-//         set: function (id, value) {
-//             data[id] = value;
-//         },
-//     };
-// })();
-
-// This is a memcached cache using the memjs library.
 var cache = (function () {
-    var cache = memjs.Client.create();
+    var data = {};
     return {
         get: function (id, callback) {
-            cache.get(id, function (err, data) {
-                callback(data ? data.toString() : data);
-            });
+            callback(data[id] ? data[id].toString() : data[id]);
         },
         set: function (id, value) {
-            cache.set(id, value, function (err) {
-                // nothing to do
-            }, 86400);
+            data[id] = value;
         },
     };
 })();
+
+// This is a memcached cache using the memjs library.
+// var cache = (function () {
+//     var cache = memjs.Client.create();
+//     return {
+//         get: function (id, callback) {
+//             cache.get(id, function (err, data) {
+//                 callback(data ? data.toString() : data);
+//             });
+//         },
+//         set: function (id, value) {
+//             cache.set(id, value, function (err) {
+//                 // nothing to do
+//             }, 86400);
+//         },
+//     };
+// })();
 
 
 // prefix for the cache, this is YYYYMMDD
