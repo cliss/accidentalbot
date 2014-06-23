@@ -5,8 +5,6 @@
 */
 
 var bloomfilter = require('bloomfilter');
-var memjs = require('memjs');
-
 
 var bloomSize = 256;
 var bloomHashes = 7;
@@ -66,15 +64,42 @@ Votes.prototype.load = function (callback) {
 		votes.current = current;
 
 		if (typeof(current) === 'string' && current !== '') {
-			build(current, callback.bind(votes));
+			build(current, callback);
 		} else {
-			callback.bind(votes)();
+			callback();
 		}
 	});
 }
 
+Votes.prototype.contains = function (data, comparator) {
+	for (var key in this.items) {
+		if (this.items.hasOwnProperty(key)) {
+			if (comparator(JSON.parse(this.items[key].data), data)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+Votes.prototype.getAllForUser = function (user) {
+	var ret = [];
+	for (var key in this.items) {
+		if (this.items.hasOwnProperty(key)) {
+			var item = JSON.parse(this.items[key].data);
+			item.id = key;
+			item.votes = this.items[key].votes;
+			item.voted = this.items[key].users.test(user);
+			ret.push(item);
+		}
+	}
+	return ret;
+}
+
 Votes.prototype.newItem = function (data) {
 	var id = keygen(this.root);
+	data = JSON.stringify(data);
 
 	var item = {
 		data: data,
@@ -83,18 +108,18 @@ Votes.prototype.newItem = function (data) {
 		next: this.current
 	};
 
-	store.set(id, JSON.stringify(item));
+	this.store.set(id, JSON.stringify(item));
 
 	item.users = new bloomfilter.BloomFilter(bloomSize, bloomHashes);
 	var users = JSON.stringify([].slice.call(item.users.buckets));
-	store.set(item.usersKey, users);
+	this.store.set(item.usersKey, users);
 
 	item.votes = 0;
-	store.set(item.votesKey, item.votes.toString());
+	this.store.set(item.votesKey, item.votes.toString());
 
 	// setting this last, in case we die before we get here
 	this.current = id;
-	store.replace(this.root, id);
+	this.store.set(this.root, id);
 
 	this.items[id] = item;
 
@@ -107,21 +132,27 @@ Votes.prototype.vote = function (id, user) {
 	var user = typeof user === 'undefined' ? user : user.toString();
 
 	if (item) {
+		var ret = JSON.parse(item.data);
+		ret.succeeded = false;
+
 		if (!user || !item.users.test(user)) {
 			item.votes += 1;
-			store.replace(item.votesKey, item.votes.toString());
+			this.store.set(item.votesKey, item.votes.toString());
 
 			if (user) {
 				item.users.add(user);
 				var users = JSON.stringify([].slice.call(item.users.buckets));
-				store.replace(item.usersKey, users);
+				this.store.set(item.usersKey, users);
 			}
+
+			ret.succeeded = true;
 		}
 
-		return item.votes;
-	} else {
-		return false;
+		ret.votes = item.votes;
+		return ret;
 	}
+
+	return false;
 }
 
-this.exports.Votes = Votes;
+module.exports.Votes = Votes;
