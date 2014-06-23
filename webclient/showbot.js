@@ -101,7 +101,6 @@ Showbot.Bot = (function ($) {
 
 					// Remove all the anchors for already voted titles
 					console.log(JSON.stringify(titlesAlreadyVoted));
-
 					for (var i=0; i < titlesAlreadyVoted.length; ++i) {
 						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
 					}
@@ -113,25 +112,25 @@ Showbot.Bot = (function ($) {
 
                     var links = packet['links'];
                     html = '';
-					for (var linkidx in links) {
-						links[linkidx].id = linkidx;
+                    for (var linkidx in links) {
+                        links[linkidx].id = linkidx;
                         html += linkRowTemplate(links[linkidx]);
-					}
+                    }
                     $('.links tbody').html(html);
                     if (!$('.links').is(':visible')) {
                         $('.links').fadeIn();
                     }
                 } else if (packet.operation == 'NEW') {
                     // New title
-					for (var titleidx in packet.title) {
-						packet.title[titleidx].id = titleidx;
-						$('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
-					}
+                    for (var titleidx in packet.title) {
+                        packet.title[titleidx].id = titleidx;
+                        $('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
+                    }
                 } else if (packet.operation == 'NEWLINK') {
-					for (var linkidx in packet.link) {
-						packet.link[linkidx].id = linkidx;
-						$('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
-					}
+                    for (var linkidx in packet.link) {
+                        packet.link[linkidx].id = linkidx;
+                        $('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
+                    }
                 } else if (packet.operation == 'VOTE') {
                     // Modify a vote
                     var row = $('tr[data-id=' + packet.id + ']');
