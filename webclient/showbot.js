@@ -1,6 +1,4 @@
-'use strict';
-
-window.Showbot = window.Showbot || {};
+var Showbot = Showbot || {};
 
 Showbot.Bot = (function ($) {
 
@@ -33,7 +31,7 @@ Showbot.Bot = (function ($) {
         var id = $(anchor).closest('tr').data('id');
         connection.send(JSON.stringify({operation: 'VOTE', id: id}));
         var voteSpan = $(anchor).parent().find('.votes');
-        voteSpan.html(Number(voteSpan.html()) + 1);
+        voteSpan.html(new Number(voteSpan.html()) + 1);
         $(anchor).remove();
         return false;
     }
@@ -67,13 +65,11 @@ Showbot.Bot = (function ($) {
 	function connectSocket() {
 		if (connection == null || connection.readyState == 3) {
 			// Connect to the server and await feedback.
-            //if (window.location.hostname == 'localhost' || window.location.hostname == '') {
-                connection = new WebSocket('ws://kylec-macbook.dhcp.tripadvisor.com:5001');
-                //console.log('ws://localhost:5001');
-            //} else {
-	            //connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
-               // console.log('ws://thawing-bayou-3232.herokuapp.com:80');
-            //}
+            if (window.location.hostname == 'localhost' || window.location.hostname == '') {
+                connection = new WebSocket('ws://localhost:5001');
+            } else {
+	            connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
+            }
 
 			connection.onopen = function (event) {
 				resetToDefault();
