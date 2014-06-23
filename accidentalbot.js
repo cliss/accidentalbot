@@ -7,7 +7,7 @@ var memjs = require('memjs');
 
 var votes = require('./votes.js');
 
-var channel = '#kyle-atpbot';
+var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
