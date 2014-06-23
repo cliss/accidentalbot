@@ -4,30 +4,30 @@ window.Showbot = window.Showbot || {};
 
 Showbot.Bot = (function ($) {
 
-	// Templates
-	var titleRowTemplate = null;
+    // Templates
+    var titleRowTemplate = null;
     var linkRowTemplate = null;
-	var connectingTemplate = null;
+    var connectingTemplate = null;
 
-	// State
-	var connection = null;
+    // State
+    var connection = null;
 
-	function init() {
-		$(function () {
+    function init() {
+        $(function () {
             titleRowTemplate = titleRowTemplate || Handlebars.compile($("#titleRow").html());
             linkRowTemplate = linkRowTemplate || Handlebars.compile($('#linkRow').html());
-			connectingTemplate = connectingTemplate || Handlebars.compile($('#connectingMessage').html());
+            connectingTemplate = connectingTemplate || Handlebars.compile($('#connectingMessage').html());
 
-			Handlebars.registerHelper('timeAgo', function (date) {
+            Handlebars.registerHelper('timeAgo', function (date) {
                 return moment(date).fromNow();
-			});
+            });
 
-			connectSocket();
+            connectSocket();
 
-			// Show the connecting message
-			$(".message").html(connectingTemplate());
-		});
-	}
+            // Show the connecting message
+            $(".message").html(connectingTemplate());
+        });
+    }
 
     function voteHandler(anchor) {
         var id = $(anchor).closest('tr').data('id');
@@ -47,11 +47,11 @@ Showbot.Bot = (function ($) {
         return false;
     }
 
-	function resetToDefault(){
-		$('.message').fadeOut(function () {
-			$('.tables').fadeIn();
-		});
-	}
+    function resetToDefault(){
+        $('.message').fadeOut(function () {
+            $('.tables').fadeIn();
+        });
+    }
 
     function ping() {
         if (connection != null) {
@@ -64,74 +64,74 @@ Showbot.Bot = (function ($) {
         });
     }
 
-	function connectSocket() {
-		if (connection == null || connection.readyState == 3) {
-			// Connect to the server and await feedback.
+    function connectSocket() {
+        if (connection == null || connection.readyState == 3) {
+            // Connect to the server and await feedback.
             if (window.location.hostname == 'localhost' || window.location.hostname == '') {
                 connection = new WebSocket('ws://localhost:5001');
             } else {
-	            connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
+                connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
             }
 
-			connection.onopen = function (event) {
-				resetToDefault();
+            connection.onopen = function (event) {
+                resetToDefault();
                 setInterval(ping, 30000);
-			};
+            };
 
-			connection.onmessage = function (message) {
-				var packet = JSON.parse(message.data);
+            connection.onmessage = function (message) {
+                var packet = JSON.parse(message.data);
                 //console.log(JSON.stringify(packet));
                 if (packet.operation == 'REFRESH') {
                     // Refresh everything
                     var titles = packet.titles;
-    				$('.titles tbody').empty();
+                    $('.titles tbody').empty();
                     var html = "";
-					// Create all the rows
-					var titlesAlreadyVoted = [];
+                    // Create all the rows
+                    var titlesAlreadyVoted = [];
 
-					for (var titleidx in titles) {
-						titles[titleidx].id = titleidx;
-						html += titleRowTemplate(titles[titleidx]);
-						if (titles[titleidx].voted) {
-							titlesAlreadyVoted.push(titleidx);
-						}
-					}
-					// Add to the table
+                    for (var titleidx in titles) {
+                        titles[titleidx].id = titleidx;
+                        html += titleRowTemplate(titles[titleidx]);
+                        if (titles[titleidx].voted) {
+                            titlesAlreadyVoted.push(titleidx);
+                        }
+                    }
+                    // Add to the table
                     $('.titles tbody').html(html);
 
-					// Remove all the anchors for already voted titles
-					console.log(JSON.stringify(titlesAlreadyVoted));
+                    // Remove all the anchors for already voted titles
+                    console.log(JSON.stringify(titlesAlreadyVoted));
 
-					for (var i=0; i < titlesAlreadyVoted.length; ++i) {
-						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
-					}
+                    for (var i=0; i < titlesAlreadyVoted.length; ++i) {
+                        $('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
+                    }
 
-					// Show the table
+                    // Show the table
                     if (!$('.titles').is(':visible')) {
                         $('.titles').fadeIn();
                     }
 
                     var links = packet['links'];
                     html = '';
-					for (var linkidx in links) {
-						links[linkidx].id = linkidx;
+                    for (var linkidx in links) {
+                        links[linkidx].id = linkidx;
                         html += linkRowTemplate(links[linkidx]);
-					}
+                    }
                     $('.links tbody').html(html);
                     if (!$('.links').is(':visible')) {
                         $('.links').fadeIn();
                     }
                 } else if (packet.operation == 'NEW') {
                     // New title
-					for (var titleidx in packet.title) {
-						packet.title[titleidx].id = titleidx;
-						$('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
-					}
+                    for (var titleidx in packet.title) {
+                        packet.title[titleidx].id = titleidx;
+                        $('.titles tbody').append(titleRowTemplate(packet.title[titleidx]));
+                    }
                 } else if (packet.operation == 'NEWLINK') {
-					for (var linkidx in packet.link) {
-						packet.link[linkidx].id = linkidx;
-						$('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
-					}
+                    for (var linkidx in packet.link) {
+                        packet.link[linkidx].id = linkidx;
+                        $('.links tbody').append(linkRowTemplate(packet.link[linkidx]));
+                    }
                 } else if (packet.operation == 'VOTE') {
                     // Modify a vote
                     var row = $('tr[data-id=' + packet.id + ']');
@@ -139,27 +139,27 @@ Showbot.Bot = (function ($) {
                 } else if (packet.operation == 'PONG') {
                     // NOOP
                 }
-			};
+            };
 
-			connection.onclose = function (event) {
-				$('.tables').fadeOut(function () {
+            connection.onclose = function (event) {
+                $('.tables').fadeOut(function () {
                     $('.message').fadeIn();
                 });
                 setTimeout(connectSocket, 5000);
                 clearInterval(ping);
-			};
+            };
 
-			connection.onerror = function (error) {
-				console.log("Error: " + JSON.stringify(error));
-			};
-		} else {
-			setTimeout(connectSocket, 5000);
-		}
-	}
+            connection.onerror = function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            };
+        } else {
+            setTimeout(connectSocket, 5000);
+        }
+    }
 
-	return {
-		init: init,
+    return {
+        init: init,
         voteHandler: voteHandler,
         linkHandler: linkHandler
-	};
+    };
 })(jQuery);
