@@ -245,6 +245,10 @@ socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = getRequestAddress(socket.upgradeReq);
     console.log('Client connected: ' + address);
+
+    // Instead of sending all of the information about current titles to the
+    // newly-connecting user, which would include the IP addresses of other
+    // users, we just send down the information they need.
     var titlesWithVotes = Object.map(titles, function (title) {
         var isVoted = titles[title]['votesBy'].hasOwnProperty(address);
         var newTitle = {
