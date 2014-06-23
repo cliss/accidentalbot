@@ -6,6 +6,7 @@ var webSocket = require('ws');
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
+var TITLE_LIMIT = 75;
 
 var titles = [];
 var connections = [];
@@ -23,14 +24,13 @@ function saveBackup() {
 
 function handleNewSuggestion(from, message) {
     var title = '';
-    if (message.startsWith('!suggest')) {
-        title = message.substring(9);
-    } else if (message.startsWith('!s')) {
-        title = message.substring(3);
+    if (message.match(/^!s(uggest)? (.+)/)) {
+        title = RegExp.$2.compact();
     }
 
-    if (title.length > 75) {
-        client.say(from, 'That title is too long; please try again.');
+    if (title.length > TITLE_LIMIT) {
+        client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
+            ' characters); please try again.');
         title = '';
     }
     if (title.length > 0) {
@@ -120,7 +120,7 @@ client.addListener('message', function (from, to, message) {
 });
 
 client.addListener('error', function (message) {
-    console.log('error: ', message)
+    console.log('error: ', message);
 });
 
 /***************************************************
@@ -238,7 +238,7 @@ socketServer.on('connection', function(socket) {
 
             if (matches.length > 0) {
                 var upvoted = matches[0];
-                if (upvoted['votesBy'].any(address) == false) {
+                if (upvoted['votesBy'].any(address) === false) {
                     upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'].push(address);
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
