@@ -1,9 +1,12 @@
+'use strict';
+
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
 var channel = '#atp';
-var webAddress = 'http://www.caseyliss.com/showbot'
+var webAddress = 'http://www.caseyliss.com/showbot';
+var TITLE_LIMIT = 75;
 
 var titles = [];
 var connections = [];
@@ -21,20 +24,19 @@ function saveBackup() {
 
 function handleNewSuggestion(from, message) {
     var title = '';
-    if (message.startsWith('!suggest')) {
-        title = message.substring(9);
-    } else if (message.startsWith('!s')) {
-        title = message.substring(3);
+    if (message.match(/^!s(?:uggest)?\s+(.+)/)) {
+        title = RegExp.$1.compact();
     }
 
-    if (title.length > 75) {
-        client.say(from, 'That title is too long; please try again.');
+    if (title.length > TITLE_LIMIT) {
+        client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
+            ' characters); please try again.');
         title = '';
     }
     if (title.length > 0) {
         // Make sure this isn't a duplicate.
         if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
-            var title = {
+            title = {
                 id: titles.length,
                 author: from,
                 title: title,
@@ -90,7 +92,7 @@ function handleNewLink(from, message) {
 function handleHelp(from) {
     client.say(from, 'Options:');
     client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
@@ -118,7 +120,7 @@ client.addListener('message', function (from, to, message) {
 });
 
 client.addListener('error', function (message) {
-    console.log('error: ', message)
+    console.log('error: ', message);
 });
 
 /***************************************************
@@ -197,12 +199,22 @@ socketServer.on('connection', function(socket) {
     connections.push(socket);
     var address = getRequestAddress(socket.upgradeReq);
     console.log('Client connected: ' + address);
+
+    // Instead of sending all of the information about current titles to the
+    // newly-connecting user, which would include the IP addresses of other
+    // users, we just send down the information they need.
     var titlesWithVotes = titles.map(function (title) {
         var isVoted = title.votesBy.some(function (testAddress) {
             return testAddress === address;
         });
-        var newTitle = Object.clone(title, true);
-        newTitle.voted = isVoted;
+        var newTitle = {
+            id: title.id,
+            author: title.author,
+            title: title.title,
+            votes: title.votes,
+            voted: isVoted,
+            time: title.time
+        };
         return newTitle;
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
@@ -226,7 +238,7 @@ socketServer.on('connection', function(socket) {
 
             if (matches.length > 0) {
                 var upvoted = matches[0];
-                if (upvoted['votesBy'].any(address) == false) {
+                if (upvoted['votesBy'].any(address) === false) {
                     upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'].push(address);
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
