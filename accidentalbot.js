@@ -247,9 +247,7 @@ socketServer.on('connection', function(socket) {
     console.log('Client connected: ' + address);
     var titlesWithVotes = Object.map(titles, function (title) {
         var isVoted = titles[title]['votesBy'].hasOwnProperty(address);
-//        var newTitle = Object.clone(titles[title], true);
-        var newTitle = {};
-        newTitle[title] = {
+        var newTitle = {
             author: titles[title].author,
             title: titles[title].title,
             votes: titles[title].votes,
