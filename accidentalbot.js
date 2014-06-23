@@ -24,8 +24,8 @@ function saveBackup() {
 
 function handleNewSuggestion(from, message) {
     var title = '';
-    if (message.match(/^!s(uggest)? (.+)/)) {
-        title = RegExp.$2.compact();
+    if (message.match(/^!s(?:uggest)?\s+(.+)/)) {
+        title = RegExp.$1.compact();
     }
 
     if (title.length > TITLE_LIMIT) {
