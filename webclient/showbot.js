@@ -89,14 +89,14 @@ Showbot.Bot = (function ($) {
 					// Create all the rows
 					var titlesAlreadyVoted = [];
 
-					for (var titleidx in titles) {
-						titles[titleidx].id = titleidx;
-						html += titleRowTemplate(titles[titleidx]);
-						if (titles[titleidx].voted) {
-							titlesAlreadyVoted.push(titleidx);
-						}
-					}
-					// Add to the table
+                    for (var titleidx in titles) {
+                        titles[titleidx].id = titleidx;
+                        html += titleRowTemplate(titles[titleidx]);
+                        if (titles[titleidx].voted) {
+                            titlesAlreadyVoted.push(titleidx);
+                        }
+                    }
+                    // Add to the table
                     $('.titles tbody').html(html);
 
 					// Remove all the anchors for already voted titles
