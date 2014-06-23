@@ -40,6 +40,10 @@
       {
           "name": "Kyle Cronin",
           "url": "http://kylecronin.me/"
+      },
+      {
+          "name": "Brad Choate",
+          "url": "http://bradchoate.com/"
       }
   ],
   "bugs": "https://github.com/cliss/accidentalbot/issues"
