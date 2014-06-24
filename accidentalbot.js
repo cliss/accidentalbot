@@ -98,7 +98,7 @@ function handleNewSuggestion(from, message) {
 }
 
 function handleSendVotes(from, message) {
-    var titlesByVote = titles.sortBy(function (t) {
+    var titlesByVote = titles.getAll().sortBy(function (t) {
         return t.votes;
     }, true).to(3);
 

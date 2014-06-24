@@ -83,6 +83,19 @@ Votes.prototype.contains = function (data, comparator) {
 	return false;
 }
 
+Votes.prototype.getAll = function () {
+	var ret = [];
+	for (var key in this.items) {
+		if (this.items.hasOwnProperty(key)) {
+			var item = JSON.parse(this.items[key].data);
+			item.id = key;
+			item.votes = this.items[key].votes;
+			ret.push(item);
+		}
+	}
+	return ret;
+}
+
 Votes.prototype.getAllForUser = function (user) {
 	var ret = [];
 	for (var key in this.items) {
