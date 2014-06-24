@@ -9,6 +9,8 @@ var ws = require('ws');
 describe("accidentalbot.js", function() {
     var accidentalbot, botState;
 
+    var MIN_FLOOD_WINDOW_SIZE = 20;
+
     beforeEach(function() {
         delete require.cache[require.resolve('../accidentalbot.js')];
         process.env.PORT = 0 | (Math.random() * 16383) + 49152;
@@ -17,7 +19,7 @@ describe("accidentalbot.js", function() {
     });
 
     describe("should send a REFRESH to a new client and respond to a PING", function() {
-        this.timeout(100);
+        this.timeout(500);
         var connection = null;
 
         function openTestConnection(done) {
@@ -35,11 +37,18 @@ describe("accidentalbot.js", function() {
             });
 
             connection.on('open', function() {
-               connection.send(JSON.stringify({operation: 'PING'}));
+                setTimeout(function() {
+                    util.log("sending PING");
+                    connection.send(JSON.stringify({operation: 'PING'}));
+                }, MIN_FLOOD_WINDOW_SIZE * 3);
+                // delay this so our attack messages have a chance to be sent
+                // and we don't fall into the same flood window
+
 
                 connection.on('message', function(jsonData, flags) {
                     var data = JSON.parse(jsonData);
                     if (data.operation === 'PONG') {
+                        util.log("got PONG");
                         partiallyDone();
                     }
                 });
@@ -51,6 +60,11 @@ describe("accidentalbot.js", function() {
         });
 
         describe("even if another user has sent...", function(){
+            beforeEach(function() {
+                accidentalbot._disableOtherConnectionDisconnection();
+                accidentalbot._setFloodWindowSize(MIN_FLOOD_WINDOW_SIZE);
+            });
+
             var attackConnection = null;
             function openAttackConnectionAnd(done, f) {
                 attackConnection = new ws('ws://localhost:' + botState.port);
@@ -64,7 +78,8 @@ describe("accidentalbot.js", function() {
 
                 openTestConnection(halfDone);
                 openAttackConnectionAnd(halfDone, function(done) {
-                    connection.send(new Int8Array(128), {binary: true, mask: true});
+                    util.log("sending binary data");
+                    attackConnection.send(new Int8Array(128), {binary: true, mask: true});
                     done();
                 });
             });
@@ -74,6 +89,7 @@ describe("accidentalbot.js", function() {
 
                 openTestConnection(halfDone);
                 openAttackConnectionAnd(halfDone, function(done) {
+                    util.log("sending invalid JSON");
                     attackConnection.send("this ain't json");
                     done();
                 });

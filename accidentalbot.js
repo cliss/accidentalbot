@@ -146,6 +146,7 @@ var socketServer = new webSocket.Server({port: port});
 
 // DOS protection - we disconnect any address which sends more than windowLimit
 // messages in a window of windowSize milliseconds.
+var disconnectOtherConnectionsOfFlooders = true;
 var windowLimit = 50;
 var windowSize = 5000;
 var currentWindow = 0;
@@ -180,11 +181,13 @@ function floodedBy(socket, floodMultiplier) {
         console.warn("Disconnecting flooding address: " + address);
         socket.terminate();
 
-        for (var i = 0, l = connections.length; i < l; i++) {
-            if (getRequestAddress(connections[i].upgradeReq) === address &&
-                connections[i] != socket) {
-                console.log("Disconnecting additional connection.");
-                connections[i].terminate();
+        if (disconnectOtherConnectionsOfFlooders) {
+            for (var i = 0, l = connections.length; i < l; i++) {
+                if (getRequestAddress(connections[i].upgradeReq) === address &&
+                    connections[i] != socket) {
+                    console.log("Disconnecting additional connection.");
+                    connections[i].terminate();
+                }
             }
         }
 
@@ -290,5 +293,13 @@ module.exports = {
             port: port,
             socketServer: socketServer
         };
+    },
+
+    _disableOtherConnectionDisconnection: function() {
+        disconnectOtherConnectionsOfFlooders = false;
+    },
+
+    _setFloodWindowSize: function(size) {
+        windowSize = size;
     }
 };
