@@ -3,6 +3,8 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var express = require('express');
+var http = require('http');
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
@@ -123,13 +125,32 @@ client.addListener('error', function (message) {
     console.log('error: ', message);
 });
 
+
+/***************************************************
+ * HTTP SERVER                                     *
+ ***************************************************/
+
+var app = express();
+
+app.use(express.static( __dirname + "/webclient"));
+
+app.get('/', function(req, res) {
+    res.redirect('/showbot.html');
+});
+
+var server = http.createServer(app);
+
+
 /***************************************************
  * WEB SOCKETS                                     *
  ***************************************************/
 
-var port = Number(process.env.PORT || 5001);
 var proxied = process.env.PROXIED === 'true';
-var socketServer = new webSocket.Server({port: port});
+var socketServer = new webSocket.Server({server: server});
+
+var port = Number(process.env.PORT || 5001);
+server.listen(port);
+console.log("HTTP and WS server listening on port " + port + ".");
 
 // DOS protection - we disconnect any address which sends more than windowLimit
 // messages in a window of windowSize milliseconds.

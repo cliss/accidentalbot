@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "express": "^4.4.4",
     "irc": "^0.3.6",
     "sugar": "^1.4.1",
     "ws": "^0.4.31"
@@ -32,6 +33,10 @@
       {
           "name": "Jeremy Banks",
           "url": "http://www.jeremybanks.ca/"
+      },
+      {
+          "name": "Akshay Shekher",
+          "url" : "http://tripent.net/"
       },
       {
           "name": "Dave Eilers",
