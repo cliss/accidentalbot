@@ -41,6 +41,10 @@ if (settings.cache.enabled) {
     // (Memcachier addon must be enabled for this)
     var memjs = require('memjs');
     cache = memjs.Client.create();
+
+    cache.get('-null-', function (err, value, key) {
+        console.log('Started up cache...');
+    });
 }
 
 function initStateFromCache(cb) {
