@@ -14,6 +14,6 @@ WebSockets for your app:
     heroku labs:enable websockets -a APPNAME
 
 To enable Memcached caching on Heroku, you will need to add the
-Memcachier addon for your app:
+MemCachier addon for your app:
 
     heroku addons:add memcachier -a APPNAME
