@@ -4,8 +4,9 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
-var webAddress = 'http://www.caseyliss.com/showbot';
+var channel = process.env.IRC_CHANNEL || '#atp';
+var nick = process.env.IRC_NICK || 'accidentalbot';
+var webAddress = process.env.CLIENT_URL || 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
 var titles = [];
@@ -63,7 +64,7 @@ function handleSendVotes(from, message) {
     client.say(from, 'Three most popular titles:');
     for (var i = 0; i < titlesByVote.length; ++i) {
         var votes = titlesByVote[i]['votes'];
-        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
+        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': "' + titlesByVote[i].title + '"');
     }
 }
 
@@ -98,7 +99,7 @@ function handleHelp(from) {
     client.say(from, 'To see titles/links, go to: ' + webAddress);
 }
 
-var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
+var client = new irc.Client('irc.freenode.net', nick, {
     channels: [channel]
 });
 
