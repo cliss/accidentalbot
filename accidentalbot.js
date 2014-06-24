@@ -8,8 +8,8 @@ var crypto = require('crypto');
 var settings = {
     irc: {
         host:        'irc.freenode.net',
-        channelName: '#bchoatetest',
-        botName:     'bchoatebot'
+        channelName: '#atp',
+        botName:     'accidentalbot'
     },
     cache: {
         enabled: process.env.MEMCACHED_SERVERS || process.env.MEMCACHIER_SERVERS,
@@ -42,6 +42,8 @@ if (settings.cache.enabled) {
     var memjs = require('memjs');
     cache = memjs.Client.create();
 
+    // part of a workaround for a production issue
+    // affecting memjs and Heroku/Memcachier
     cache.get('-null-', function (err, value, key) {
         console.log('Started up cache...');
     });
@@ -386,7 +388,7 @@ function start() {
     console.log('...ready!');
 }
 
-// workaround a cold-start bug that seems to exist in memjs
+// Workaround a cold-start bug that seems to exist in memjs
 // by adding a delayed start for the Heroku app, we're able
 // to load existing titles, links, etc. from our cache.
 console.log('Waiting to start...');
