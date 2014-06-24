@@ -150,6 +150,7 @@ var socketServer = new webSocket.Server({server: server});
 
 var port = Number(process.env.PORT || 5001);
 server.listen(port);
+console.log("HTTP and WS server listening on port " + port + ".");
 
 // DOS protection - we disconnect any address which sends more than windowLimit
 // messages in a window of windowSize milliseconds.
