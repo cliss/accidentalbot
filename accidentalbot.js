@@ -3,14 +3,54 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var memjs = require('memjs');
+
+var votes = require('./votes.js');
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
-var titles = [];
 var connections = [];
+
+// A cache is just an object with get(id, callback) and set(id, value) properties
+// This is just an example that is backed by a JS object
+var cache = (function () {
+    var data = {};
+    return {
+        get: function (id, callback) {
+            callback(data[id] ? data[id].toString() : data[id]);
+        },
+        set: function (id, value) {
+            data[id] = value;
+        },
+    };
+})();
+
+// This is a memcached cache using the memjs library.
+// var cache = (function () {
+//     var cache = memjs.Client.create();
+//     return {
+//         get: function (id, callback) {
+//             cache.get(id, function (err, data) {
+//                 callback(data ? data.toString() : data);
+//             });
+//         },
+//         set: function (id, value) {
+//             cache.set(id, value, function (err) {
+//                 // nothing to do
+//             }, 86400);
+//         },
+//     };
+// })();
+
+
+// prefix for the cache, this is YYYYMMDD
+var prefix = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
+
+var titles = new votes.Votes(prefix + '_titles', cache);
 var links = [];
+
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
@@ -35,18 +75,20 @@ function handleNewSuggestion(from, message) {
     }
     if (title.length > 0) {
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
-            title = {
-                id: titles.length,
-                author: from,
-                title: title,
-                titleLower: title.toLowerCase(),
-                votes: 0,
-                votesBy: [],
-                time: new Date()
-            };
-            titles.push(title);
 
+        title = {
+            title: title,
+            author: from,
+            time: new Date(),
+        }
+
+        var contains = titles.contains(title, function (a, b) {
+            return a.title.toLowerCase() === b.title.toLowerCase();
+        });
+
+        if (!contains) {
+            title.id = titles.newItem(title);
+            title.votes = 0;
             sendToAll({operation: 'NEW', title: title});
         } else {
             //client.say(channel, 'Sorry, ' + from + ', your title is a duplicate. Please try another!');
@@ -56,7 +98,7 @@ function handleNewSuggestion(from, message) {
 }
 
 function handleSendVotes(from, message) {
-    var titlesByVote = titles.sortBy(function (t) {
+    var titlesByVote = titles.getAll().sortBy(function (t) {
         return t.votes;
     }, true).to(3);
 
@@ -193,66 +235,51 @@ function getRequestAddress(request) {
     }
 }
 
-socketServer.on('connection', function(socket) {
-    if (floodedBy(socket)) return;
-
-    connections.push(socket);
-    var address = getRequestAddress(socket.upgradeReq);
-    console.log('Client connected: ' + address);
-
-    // Instead of sending all of the information about current titles to the
-    // newly-connecting user, which would include the IP addresses of other
-    // users, we just send down the information they need.
-    var titlesWithVotes = titles.map(function (title) {
-        var isVoted = title.votesBy.some(function (testAddress) {
-            return testAddress === address;
-        });
-        var newTitle = {
-            id: title.id,
-            author: title.author,
-            title: title.title,
-            votes: title.votes,
-            voted: isVoted,
-            time: title.time
-        };
-        return newTitle;
-    });
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
-
-    socket.on('close', function () {
-        console.log('Client disconnected: ' + address);
-        connections.splice(connections.indexOf(socket), 1);
-    });
-
-    socket.on('message', function (data, flags) {
+function engage() {
+    socketServer.on('connection', function(socket) {
         if (floodedBy(socket)) return;
 
-        if (flags.binary) {
-            console.log("ignoring binary message from "  + address);
-            return;
-        }
+        connections.push(socket);
+        var address = getRequestAddress(socket.upgradeReq);
+        console.log('Client connected: ' + address);
 
-        var packet = JSON.parse(data);
-        if (packet.operation === 'VOTE') {
-            var matches = titles.findAll({id: packet['id']});
+        socket.send(JSON.stringify({operation: 'REFRESH', titles: titles.getAllForUser(address), links: links}));
 
-            if (matches.length > 0) {
-                var upvoted = matches[0];
-                if (upvoted['votesBy'].any(address) === false) {
-                    upvoted['votes'] = Number(upvoted['votes']) + 1;
-                    upvoted['votesBy'].push(address);
-                    sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
-                    console.log('+1 for ' + upvoted['title'] + ' by ' + address);
-                } else {
-                    console.log('ignoring duplicate vote by ' + address + ' for ' + upvoted['title']);
-                }
-            } else {
-                console.log('no matches for id: ' + packet['id']);
+        socket.on('close', function () {
+            console.log('Client disconnected: ' + address);
+            connections.splice(connections.indexOf(socket), 1);
+        });
+
+        socket.on('message', function (data, flags) {
+            if (floodedBy(socket)) return;
+
+            if (flags.binary) {
+                console.log("ignoring binary message from "  + address);
+                return;
             }
-        } else if (packet.operation === 'PING') {
-            socket.send(JSON.stringify({operation: 'PONG'}));
-        } else {
-            console.log("Don't know what to do with " + packet['operation']);
-        }
+
+            var packet = JSON.parse(data);
+            if (packet.operation === 'VOTE') {
+                var title;
+                if (title = titles.vote(packet['id'], address)) {
+                    if (title.succeeded) {
+                        sendToAll({operation: 'VOTE', votes: title.votes, id: packet['id']});
+                        console.log('+1 for ' + title.title + ' by ' + address);
+                    } else {
+                        console.log('ignoring duplicate vote by ' + address + ' for ' + title.title);
+                    }
+                } else {
+                    console.log('no matches for id: ' + packet['id']);
+                }
+            } else if (packet.operation === 'PING') {
+                socket.send(JSON.stringify({operation: 'PONG'}));
+            } else {
+                console.log("Don't know what to do with " + packet['operation']);
+            }
+        });
     });
-});
+}
+
+// this loads the state of the titles back from the cache, and calls its callback (no params) when done
+titles.load(engage);
+
