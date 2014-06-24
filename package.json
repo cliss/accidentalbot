@@ -9,7 +9,7 @@
   ],
   "main": "accidentalbot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --reporter spec"
   },
   "author": {
       "name": "Casey Liss",
@@ -21,6 +21,9 @@
     "sugar": "^1.4.1",
     "ws": "^0.4.31"
   },
+  "devDependencies": {
+    "mocha": "^1.20.1"
+  },
   "repository": {
       "type": "git",
       "url": "https://github.com/cliss/accidentalbot.git"
@@ -31,7 +34,7 @@
   "contributors": [
       {
           "name": "Jeremy Banks",
-          "url": "http://www.jeremybanks.ca/"
+          "url": "http://jeremybanks.ca/"
       },
       {
           "name": "Dave Eilers",

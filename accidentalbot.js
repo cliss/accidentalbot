@@ -12,6 +12,23 @@ var titles = [];
 var connections = [];
 var links = [];
 
+var client;
+
+client = new irc.Client('irc.freenode.net', 'accidentalbot', {
+    channels: [channel],
+    autoconnect: false
+});
+
+
+// Automatically connect to IRC if this file is run directly, not require()d.
+function main() {
+    client.connect();
+}
+
+if (require.main === module) {
+    main();
+}
+
 function sendToAll(packet) {
     connections.forEach(function (connection) {
         connection.send(JSON.stringify(packet));
@@ -97,10 +114,6 @@ function handleHelp(from) {
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
 }
-
-var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
-    channels: [channel]
-});
 
 client.addListener('join', function (channel, nick, message) {
     console.log('Joined channel ' + channel);
@@ -256,3 +269,17 @@ socketServer.on('connection', function(socket) {
         }
     });
 });
+
+
+// currently only used for testing
+module.exports = {
+    main: main,
+
+    _getStateForTest: function() {
+        return {
+            client: client,
+            port: port,
+            socketServer: socketServer
+        };
+    }
+};
