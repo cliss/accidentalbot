@@ -19,8 +19,13 @@ describe("accidentalbot.js", function() {
     });
 
     describe("should send a REFRESH to a new client and respond to a PING", function() {
-        this.timeout(500);
-        var connection = null;
+        var connection;
+        var connectionClosed;
+
+        beforeEach(function() {
+            connection = null;
+            connectionClosed = false;
+        });
 
         function openTestConnection(done) {
             // Opens a connection, and calls done once it has send the initial
@@ -40,7 +45,7 @@ describe("accidentalbot.js", function() {
                 setTimeout(function() {
                     util.log("sending PING");
                     connection.send(JSON.stringify({operation: 'PING'}));
-                }, MIN_FLOOD_WINDOW_SIZE * 3);
+                }, MIN_FLOOD_WINDOW_SIZE * 2);
                 // delay this so our attack messages have a chance to be sent
                 // and we don't fall into the same flood window
 
@@ -52,6 +57,10 @@ describe("accidentalbot.js", function() {
                         partiallyDone();
                     }
                 });
+            });
+
+            connection.on('close', function() {
+                connectionClosed = true;
             });
         }
 
@@ -66,10 +75,14 @@ describe("accidentalbot.js", function() {
             });
 
             var attackConnection = null;
+            var attackConnectionClosed = false;
             function openAttackConnectionAnd(done, f) {
                 attackConnection = new ws('ws://localhost:' + botState.port);
                 attackConnection.on('open', function() {
                     f(done);
+                });
+                attackConnection.on('close', function() {
+                    attackConnectionClosed = true;
                 });
             }
 
@@ -95,13 +108,21 @@ describe("accidentalbot.js", function() {
                 });
             });
 
-            afterEach(function() {
-                attackConnection.terminate();
+            afterEach(function(done) {
+                setTimeout(function() {
+                    assert(attackConnectionClosed, "Attacking users should have been disconnected.");
+                    attackConnection.terminate();
+                    done();
+                }, 100);
             });
         });
 
-        afterEach(function() {
-            connection.terminate();
+        afterEach(function(done) {
+            setTimeout(function() {
+                assert(!connectionClosed, "Non-attacking users should not have been disconnected.");
+                connection.terminate();
+                done()
+            });
         });
     });
 
