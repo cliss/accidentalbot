@@ -150,13 +150,15 @@ var windowLimit = 50;
 var windowSize = 5000;
 var currentWindow = 0;
 var recentMessages = {};
-function floodedBy(socket) {
+function floodedBy(socket, floodMultiplier) {
     // To be called each time we get a message or connection attempt.
     //
     // If that address has been flooding us, we disconnect all open connections
     // from that address and return `true` to indicate that it should be
     // ignored. (They will not be prevented from re-connecting after waiting
     // for the next window.)
+    //
+    // Use floodMultiplier if a particular action be a stronger offence.
     if (socket.readyState == socket.CLOSED) {
         return true;
     }
@@ -169,11 +171,10 @@ function floodedBy(socket) {
         recentMessages = {};
     }
 
-    if (address in recentMessages) {
-        recentMessages[address]++;
-    } else {
-        recentMessages[address] = 1;
+    if (!(address in recentMessages)) {
+        recentMessages[address] = 0
     }
+    recentMessages[address] += (floodMultiplier || 1);
 
     if (recentMessages[address] > windowLimit) {
         console.warn("Disconnecting flooding address: " + address);
@@ -241,11 +242,19 @@ socketServer.on('connection', function(socket) {
         if (floodedBy(socket)) return;
 
         if (flags.binary) {
-            console.log("ignoring binary message from "  + address);
+            console.warn("disconnecting "  + address + " due to binary message");
+            floodedBy(socket, Infinity);
             return;
         }
 
-        var packet = JSON.parse(data);
+        try {
+            var packet = JSON.parse(data);
+        } catch (e) {
+            console.warn("disconnecting "  + address + " due to invalid JSON");
+            floodedBy(socket, Infinity);
+            return;
+        }
+
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
 
