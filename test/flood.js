@@ -25,17 +25,16 @@ function restartFlooding() {
 //        util.log('flooding connected');
         floodInterval = setInterval(function() {
             var l = 10000;
-            if (withInvalid) {
-                l /= 5;
-            }
-            for (var i = 0; i < 2000; i++) {
-                connection.send(JSON.stringify({operation: 'VOTE', id: 0}));
-                if (withInvalid) {
-                    connection.send([1, 'hello', {}]);
-                    connection.send({foo: ['world', 2]});
-                    connection.send(3.0);
-                    connection.send([1, function(){}, new Uint8Array(1)]);
+            try {
+                for (var i = 0; i < 2000; i++) {
+                    if (!withInvalid) {
+                        connection.send(JSON.stringify({operation: 'VOTE', id: 0}));
+                    } else {
+                        connection.send(3.0);
+                    }
                 }
+            } catch (e) {
+
             }
         }, 0);
     });

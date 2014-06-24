@@ -233,6 +233,10 @@ socketServer.on('connection', function(socket) {
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
 
+    socket.on('error', function() {
+        if (floodedBy(socket)) return;
+    });
+
     socket.on('close', function () {
         console.log('Client disconnected: ' + address);
         connections.splice(connections.indexOf(socket), 1);

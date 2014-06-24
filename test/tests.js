@@ -135,8 +135,7 @@ describe("accidentalbot.js", function() {
                         child.send({
                             method: 'flood',
                             params: ['ws://localhost:' + botState.port],
-                            execArgv: [],
-                            silent: true
+                            execArgv: []
                         });
                         partiallyDone();
                     });
