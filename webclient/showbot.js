@@ -1,4 +1,6 @@
-var Showbot = Showbot || {};
+'use strict';
+
+window.Showbot = window.Showbot || {};
 
 Showbot.Bot = (function ($) {
 
@@ -31,7 +33,7 @@ Showbot.Bot = (function ($) {
         var id = $(anchor).closest('tr').data('id');
         connection.send(JSON.stringify({operation: 'VOTE', id: id}));
         var voteSpan = $(anchor).parent().find('.votes');
-        voteSpan.html(new Number(voteSpan.html()) + 1);
+        voteSpan.html(Number(voteSpan.html()) + 1);
         $(anchor).remove();
         return false;
     }
@@ -65,7 +67,7 @@ Showbot.Bot = (function ($) {
 	function connectSocket() {
 		if (connection == null || connection.readyState == 3) {
 			// Connect to the server and await feedback.
-            if (window.location.hostname == 'localhost') {
+            if (window.location.hostname == 'localhost' || window.location.hostname == '') {
                 connection = new WebSocket('ws://localhost:5001');
             } else {
 	            connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
@@ -127,7 +129,6 @@ Showbot.Bot = (function ($) {
                     var span = $(row).find('.votes').html(packet.votes);
                 } else if (packet.operation == 'PONG') {
                     // NOOP
-                    console.log('PONG');
                 }
 			};
 
