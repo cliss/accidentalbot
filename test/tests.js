@@ -102,6 +102,7 @@ describe("accidentalbot.js", function() {
                 openTestConnection(halfDone);
                 openAttackConnectionAnd(halfDone, function(done) {
                     util.log("sending a non-JSON string");
+                    attackConnection.send("hello world");
                     done();
                 });
             });
@@ -109,7 +110,7 @@ describe("accidentalbot.js", function() {
             afterEach(function(done) {
                 if (attackConnection) {
                     setTimeout(function() {
-//                        assert(attackConnectionClosed, "Attacking users should have been disconnected.");
+                       assert(attackConnectionClosed, "Attacking users should have been disconnected.");
                         attackConnection && attackConnection.terminate();
                         done();
                     }, 100);
