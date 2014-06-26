@@ -107,6 +107,17 @@ describe("accidentalbot.js", function() {
                 });
             });
 
+            it("...a message that's invalid at the WS protocol level", function(done) {
+                var halfDone = partialDone(done, 2);
+
+                openTestConnection(halfDone);
+                openAttackConnectionAnd(halfDone, function(done) {
+                    util.log("sending an invalid WebSocket request");
+                    attackConnection._sender.frameAndSend(0xA, new Buffer(128), true, 0);
+                    done();
+                });
+            });
+
             afterEach(function(done) {
                 if (attackConnection) {
                     setTimeout(function() {
