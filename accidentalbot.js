@@ -18,6 +18,8 @@ function sendToAll(packet) {
     });
 }
 
+setInterval(saveBackup, 300000);
+
 function saveBackup() {
     // TODO: Figure out what to do here.
 }
@@ -103,8 +105,19 @@ var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
 });
 
 client.addListener('join', function (channel, nick, message) {
-    console.log('Joined channel ' + channel);
-    setInterval(saveBackup, 300000);
+    if (nick === client.nick) {
+        console.log("Joined channel " + channel + ".");
+    }
+});
+
+client.addListener('connect', function() {
+    console.log("Connected to IRC.");
+});
+
+client.addListener('kick', function (channel, nick, by, reason) {
+    if (nick === client.nick) {
+        console.log("Kicked from channel " + channel + " by " + by + " because " + reason + ".");
+    }
 });
 
 client.addListener('message', function (from, to, message) {
