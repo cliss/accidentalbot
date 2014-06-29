@@ -4,7 +4,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#ezatp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
@@ -28,6 +28,8 @@ function handleNewSuggestion(from, message) {
         title = RegExp.$1.compact();
     }
 
+	title = normalizeTitle(title);
+	
     if (title.length > TITLE_LIMIT) {
         client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
             ' characters); please try again.');
@@ -53,6 +55,13 @@ function handleNewSuggestion(from, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
     }
+}
+
+function normalizeTitle(title) {
+	// Strip trailing periods from title
+	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+	
+	return title;
 }
 
 function handleSendVotes(from, message) {
