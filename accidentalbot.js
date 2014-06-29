@@ -4,7 +4,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#ezatp';
+var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
