@@ -236,7 +236,14 @@ socketServer.on('connection', function(socket) {
             return;
         }
 
-        var packet = JSON.parse(data);
+        var packet;
+        try {
+            packet = JSON.parse(data);
+        } catch (e) {
+            console.log('error: malformed JSON message (' + e + '): '+ data);
+            return;
+        }
+
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
 
