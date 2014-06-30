@@ -4,7 +4,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#ezatp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
@@ -34,13 +34,16 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
+	
+		var normalizedTitle = normalize(title);
+	
         // Make sure this isn't a duplicate.
-        if (titles.findAll({normalized: normalize(title)}).length === 0) {
+        if (titles.findAll({normalized: normalizedTitle}).length === 0) {
             title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                normalized: normalize(title),
+                normalized: normalizedTitle,
                 votes: 0,
                 votesBy: [],
                 time: new Date()
