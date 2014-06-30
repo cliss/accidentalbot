@@ -28,8 +28,6 @@ function handleNewSuggestion(from, message) {
         title = RegExp.$1.compact();
     }
 
-	title = normalizeTitle(title);
-	
     if (title.length > TITLE_LIMIT) {
         client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
             ' characters); please try again.');
@@ -37,12 +35,12 @@ function handleNewSuggestion(from, message) {
     }
     if (title.length > 0) {
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
+        if (titles.findAll({normalized: normalize(title)}).length === 0) {
             title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                titleLower: title.toLowerCase(),
+                normalized: normalize(title),
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -57,8 +55,9 @@ function handleNewSuggestion(from, message) {
     }
 }
 
-function normalizeTitle(title) {
+function normalize(title) {
 	// Strip trailing periods from title
+	title = title.toLowerCase();
 	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
 	
 	return title;
