@@ -86,6 +86,10 @@ Showbot.Bot = (function ($) {
                     var titles = packet.titles;
     				$('.titles tbody').empty();
                     var html = "";
+					
+					// Sort the titles by vote
+					titles = titles.sort(function(a,b){return b.votes - a.votes;});
+					
 					// Create all the rows
 					var titlesAlreadyVoted = [];
                     for (var i=0; i < titles.length; ++i) {
