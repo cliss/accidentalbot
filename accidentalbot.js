@@ -297,7 +297,11 @@ function getRequestAddress(request) {
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
-        connection.send(JSON.stringify(packet));
+        try {
+            connection.send(JSON.stringify(packet));
+        } catch (e) {
+            console.log('sendToAll error: ' + e);
+        }
     });
 }
 
@@ -305,7 +309,7 @@ function startupSocketServer(port) {
     socketServer = new webSocket.Server({port: port});
 
     socket.on('error', function (reason, code) {
-      console.log('socket error: reason ' + reason + ', code ' + code);
+        console.log('socket error: reason ' + reason + ', code ' + code);
     });
 
     socketServer.on('connection', function(socket) {
