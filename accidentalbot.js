@@ -108,7 +108,8 @@ var client;
 
 function makeHash(str) {
     var md5 = crypto.createHash('md5');
-    md5.update(str.toLowerCase());
+    // derive a hash from the alphanumeric letters in the input
+    md5.update(str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
     return md5.digest('hex');
 }
 
@@ -124,6 +125,7 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
+
         // Make sure this isn't a duplicate.
         var titleHash = makeHash(title);
         if (state.titles.findAll({hash: titleHash}).length === 0) {
@@ -301,6 +303,10 @@ function sendToAll(packet) {
 
 function startupSocketServer(port) {
     socketServer = new webSocket.Server({port: port});
+
+    socket.on('error', function (reason, code) {
+      console.log('socket error: reason ' + reason + ', code ' + code);
+    });
 
     socketServer.on('connection', function(socket) {
         if (floodedBy(socket)) {
