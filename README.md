@@ -14,3 +14,8 @@ behind a reverse proxy:
 
     heroku labs:enable websockets -a APPNAME
     heroku config:set PROXIED true -a APPNAME
+
+To enable Memcached caching on Heroku, you will need to add the MemCachier addon
+for your app:
+
+    heroku addons:add memcachier -a APPNAME
