@@ -4,7 +4,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = '#ezatp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
@@ -34,13 +34,16 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
+	
+		var normalizedTitle = normalize(title);
+	
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
+        if (titles.findAll({normalized: normalizedTitle}).length === 0) {
             title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                titleLower: title.toLowerCase(),
+                normalized: normalizedTitle,
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -53,6 +56,14 @@ function handleNewSuggestion(from, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
     }
+}
+
+function normalize(title) {
+	// Strip trailing periods from title
+	title = title.toLowerCase();
+	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+	
+	return title;
 }
 
 function handleSendVotes(from, message) {
