@@ -11,7 +11,10 @@
     <body class="container-fluid">
         <script id="titleRow" type="text/x-handlebars-template">
             <tr data-id="{{id}}">
-                <td><span class="votes">{{votes}}</span>&nbsp;<a class="vote" href="#" onclick="return Showbot.Bot.voteHandler(this);">+1</a></td>
+				<td><button type="button" class="vote btn btn-default btn-small" onclick="return Showbot.Bot.voteHandler(this);">
+					<span class="glyphicon glyphicon-thumbs-up"></span>
+				</button></td>
+                <td><span class="votes">{{votes}}</span></td>
                 <td>{{title}}</td>
                 <td>{{author}}</td>
                 <td class="time" data-time="{{{time}}}">{{timeAgo time}}</td>
@@ -35,6 +38,7 @@
         <table class="titles table table-striped">
             <thead>
                 <tr>
+					<th></th>
                     <th>Votes</th>
                     <th>Title</th>
                     <th>Author</th>
@@ -46,7 +50,7 @@
         </table>
 
         <h2>Links</h2>
-        <table class="links table">
+        <table class="links table table-striped">
             <thead>
                 <tr>
                     <th>Link</th>
