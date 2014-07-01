@@ -4,7 +4,7 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#ezatp';
+var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
@@ -34,9 +34,9 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
-	
+
 		var normalizedTitle = normalize(title);
-	
+
         // Make sure this isn't a duplicate.
         if (titles.findAll({normalized: normalizedTitle}).length === 0) {
             title = {
@@ -62,7 +62,7 @@ function normalize(title) {
 	// Strip trailing periods from title
 	title = title.toLowerCase();
 	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
-	
+
 	return title;
 }
 
