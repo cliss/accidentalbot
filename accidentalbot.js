@@ -15,11 +15,12 @@ var settings = {
         enabled: process.env.MEMCACHED_SERVERS || process.env.MEMCACHIER_SERVERS,
         ttl:     60 * 60 * 24 * 2 // cache for two days
     },
-    showbotLink:    'http://www.caseyliss.com/showbot',
-    titleLimit:     75,
-    startupDelay:   2000,
-    webSocketPort:  Number(process.env.PORT || 5001),
-    isProxied:      process.env.PROXIED === 'true'
+    showbotLink:   'http://www.caseyliss.com/showbot',
+    titleLimit:    75,
+    linkLimit:     200,
+    startupDelay:  2000,
+    webSocketPort: Number(process.env.PORT || 5001),
+    isProxied:     process.env.PROXIED === 'true'
 };
 
 // we'll persist these things
@@ -163,19 +164,31 @@ function handleSendVotes(from, message) {
     });
 }
 
+function looksLikeALink(link) {
+    // nothing too formal; just match for a sensible starting
+    // URL, domain-wise (and no auth), and weed out some of the
+    // problem characters in the path portion
+    return (link.match(/^https?:\/\/(?:[a-z0-9-]+\.)+(?:[a-z0-9-]+)(?::\d{2,4})?(?:\/|$)/) &&
+            !link.match(/[\\()[<>'" ]/)) ? true : false;
+}
+
 function handleNewLink(from, message) {
+    var link = '';
     if (message.startsWith('!link ')) {
-        message = message.substring(6).trim();
+        link = message.substring(6).trim();
     } else if (message.startsWith('!l ')) {
-        message = message.substring(3).trim();
+        link = message.substring(3).trim();
     }
 
-    if (message.startsWith('http')) {
+    if (link.length > settings.linkLimit) {
+        client.say(from, 'That link is too long (over ' + settings.linkLimit +
+            ' characters); please try again.');
+    } else if (looksLikeALink(link)) {
         var id = state.links.length;
         var submission = {
             id: id,
             author: from,
-            link: message,
+            link: link,
             time: new Date()
         };
         state.links[id] = submission;
@@ -308,10 +321,6 @@ function sendToAll(packet) {
 function startupSocketServer(port) {
     socketServer = new webSocket.Server({port: port});
 
-    socket.on('error', function (reason, code) {
-        console.log('socket error: reason ' + reason + ', code ' + code);
-    });
-
     socketServer.on('connection', function(socket) {
         if (floodedBy(socket)) {
             return;
@@ -340,6 +349,10 @@ function startupSocketServer(port) {
         socket.on('close', function () {
             console.log('Client disconnected: ' + address);
             connections.splice(connections.indexOf(socket), 1);
+        });
+
+        socket.on('error', function (reason, code) {
+            console.log('socket error: reason ' + reason + ', code ' + code);
         });
 
         socket.on('message', function (data, flags) {
