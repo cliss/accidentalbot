@@ -14,7 +14,11 @@ var links = [];
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
-        connection.send(JSON.stringify(packet));
+        try {
+            connection.send(JSON.stringify(packet));
+        } catch (e) {
+            console.log('sendToAll error: ' + e);
+        }
     });
 }
 
