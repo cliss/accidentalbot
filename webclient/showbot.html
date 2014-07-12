@@ -1,14 +1,15 @@
 <html>
     <head>
         <title>Showbot</title>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-        <script src="/js/handlebars-v1.3.0.js"></script>
-        <script src="/js/showbot.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
-
-        <link rel="stylesheet" type="text/css" href="style.css">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.3.0/handlebars.min.js"></script>
+        <script src="showbot.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
+		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="style.css">
     </head>
-    <body>
+    <body class="container-fluid">
         <script id="titleRow" type="text/x-handlebars-template">
             <tr data-id="{{id}}">
                 <td><span class="votes">{{votes}}</span>&nbsp;<a class="vote" href="#" onclick="return Showbot.Bot.voteHandler(this);">+1</a></td>
@@ -32,7 +33,7 @@
         </div>
 
         <h2>Titles</h2>
-        <table class="titles">
+        <table class="titles table table-striped">
             <thead>
                 <tr>
                     <th id="votesColumn">Votes</th>
@@ -46,7 +47,7 @@
         </table>
 
         <h2>Links</h2>
-        <table class="links">
+        <table class="links table">
             <thead>
                 <tr>
                     <th>Link</th>

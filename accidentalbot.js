@@ -1,9 +1,12 @@
+'use strict';
+
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atptest';
-var webAddress = 'http://www.caseyliss.com/showbot'
+var channel = '#atp';
+var webAddress = 'http://www.caseyliss.com/showbot';
+var TITLE_LIMIT = 75;
 
 var titles = [];
 var connections = [];
@@ -11,7 +14,11 @@ var links = [];
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
-        connection.send(JSON.stringify(packet));
+        try {
+            connection.send(JSON.stringify(packet));
+        } catch (e) {
+            console.log('sendToAll error: ' + e);
+        }
     });
 }
 
@@ -20,24 +27,27 @@ function saveBackup() {
 }
 
 function handleNewSuggestion(from, message) {
-    if (message.startsWith('!suggest')) {
-        title = message.substring(9);
-    } else if (message.startsWith('!s')) {
-        title = message.substring(3);
+    var title = '';
+    if (message.match(/^!s(?:uggest)?\s+(.+)/)) {
+        title = RegExp.$1.compact();
     }
 
-    if (title.length > 75) {
-        client.say(from, 'That title is too long; please try again.');
+    if (title.length > TITLE_LIMIT) {
+        client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
+            ' characters); please try again.');
         title = '';
     }
     if (title.length > 0) {
+
+		var normalizedTitle = normalize(title);
+
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
-            var title = {
+        if (titles.findAll({normalized: normalizedTitle}).length === 0) {
+            title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                titleLower: title.toLowerCase(),
+                normalized: normalizedTitle,
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -50,6 +60,14 @@ function handleNewSuggestion(from, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
     }
+}
+
+function normalize(title) {
+	// Strip trailing periods from title
+	title = title.toLowerCase();
+	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+
+	return title;
 }
 
 function handleSendVotes(from, message) {
@@ -89,7 +107,7 @@ function handleNewLink(from, message) {
 function handleHelp(from) {
     client.say(from, 'Options:');
     client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.')
+    client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
@@ -105,8 +123,6 @@ client.addListener('join', function (channel, nick, message) {
 });
 
 client.addListener('message', function (from, to, message) {
-    var title = '';
-
     if (message.startsWith('!s')) {
         handleNewSuggestion(from, message);
     } else if (message.startsWith("!votes")) {
@@ -119,7 +135,7 @@ client.addListener('message', function (from, to, message) {
 });
 
 client.addListener('error', function (message) {
-    console.log('error: ', message)
+    console.log('error: ', message);
 });
 
 /***************************************************
@@ -127,36 +143,129 @@ client.addListener('error', function (message) {
  ***************************************************/
 
 var port = Number(process.env.PORT || 5001);
+var proxied = process.env.PROXIED === 'true';
 var socketServer = new webSocket.Server({port: port});
 
-socketServer.on('connection', function(socket) {
-    connections.push(socket);
-    var address = socket.upgradeReq.connection.remoteAddress;
-    var titlesWithVotes = titles.map(function (title) {
-        if (title.votesBy.any(address)) {
-            var newTitle = title;
-            newTitle['voted'] = true;
-            return newTitle;
-        } else {
-            return title;
+// DOS protection - we disconnect any address which sends more than windowLimit
+// messages in a window of windowSize milliseconds.
+var windowLimit = 50;
+var windowSize = 5000;
+var currentWindow = 0;
+var recentMessages = {};
+function floodedBy(socket) {
+    // To be called each time we get a message or connection attempt.
+    //
+    // If that address has been flooding us, we disconnect all open connections
+    // from that address and return `true` to indicate that it should be
+    // ignored. (They will not be prevented from re-connecting after waiting
+    // for the next window.)
+    if (socket.readyState == socket.CLOSED) {
+        return true;
+    }
+
+    var address = getRequestAddress(socket.upgradeReq);
+
+    var updatedWindow = 0 | ((new Date) / windowSize);
+    if (currentWindow !== updatedWindow) {
+        currentWindow = updatedWindow;
+        recentMessages = {};
+    }
+
+    if (address in recentMessages) {
+        recentMessages[address]++;
+    } else {
+        recentMessages[address] = 1;
+    }
+
+    if (recentMessages[address] > windowLimit) {
+        console.warn("Disconnecting flooding address: " + address);
+        socket.terminate();
+
+        for (var i = 0, l = connections.length; i < l; i++) {
+            if (getRequestAddress(connections[i].upgradeReq) === address &&
+                connections[i] != socket) {
+                console.log("Disconnecting additional connection.");
+                connections[i].terminate();
+            }
         }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function getRequestAddress(request) {
+    if (proxied && 'x-forwarded-for' in request.headers) {
+        // This assumes that the X-Forwarded-For header is generated by a
+        // trusted proxy such as Heroku. If not, a malicious user could take
+        // advantage of this logic and use it to to spoof their IP.
+        var forwardedForAddresses = request.headers['x-forwarded-for'].split(',');
+        return forwardedForAddresses[forwardedForAddresses.length - 1].trim();
+    } else {
+        // This is valid for direct deployments, without routing/load balancing.
+        return request.connection.remoteAddress;
+    }
+}
+
+socketServer.on('connection', function(socket) {
+    if (floodedBy(socket)) return;
+
+    connections.push(socket);
+    var address = getRequestAddress(socket.upgradeReq);
+    console.log('Client connected: ' + address);
+
+    // Instead of sending all of the information about current titles to the
+    // newly-connecting user, which would include the IP addresses of other
+    // users, we just send down the information they need.
+    var titlesWithVotes = titles.map(function (title) {
+        var isVoted = title.votesBy.some(function (testAddress) {
+            return testAddress === address;
+        });
+        var newTitle = {
+            id: title.id,
+            author: title.author,
+            title: title.title,
+            votes: title.votes,
+            voted: isVoted,
+            time: title.time
+        };
+        return newTitle;
     });
-    console.log(JSON.stringify(titlesWithVotes));
-    socket.send(JSON.stringify({operation: 'REFRESH', titles: titles, links: links}));
+    socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
 
     socket.on('close', function () {
+        console.log('Client disconnected: ' + address);
         connections.splice(connections.indexOf(socket), 1);
     });
 
+    socket.on('error', function (reason, code) {
+      console.log('socket error: reason ' + reason + ', code ' + code);
+    });
+
     socket.on('message', function (data, flags) {
-        var packet = JSON.parse(data);
+        if (floodedBy(socket)) return;
+
+        if (flags.binary) {
+            console.log("ignoring binary message from "  + address);
+            return;
+        }
+
+        var packet;
+        try {
+            packet = JSON.parse(data);
+        } catch (e) {
+            console.log('error: malformed JSON message (' + e + '): '+ data);
+            return;
+        }
+
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
 
             if (matches.length > 0) {
                 var upvoted = matches[0];
-                if (upvoted['votesBy'].any(address) == false) {
-                    upvoted['votes'] = new Number(upvoted['votes']) + 1;
+                if (upvoted['votesBy'].any(address) === false) {
+                    upvoted['votes'] = Number(upvoted['votes']) + 1;
                     upvoted['votesBy'].push(address);
                     sendToAll({operation: 'VOTE', votes: upvoted['votes'], id: upvoted['id']});
                     console.log('+1 for ' + upvoted['title'] + ' by ' + address);

@@ -1,4 +1,6 @@
-var Showbot = Showbot || {};
+'use strict';
+
+window.Showbot = window.Showbot || {};
 
 Showbot.Bot = (function ($) {
 
@@ -31,7 +33,7 @@ Showbot.Bot = (function ($) {
         var id = $(anchor).closest('tr').data('id');
         connection.send(JSON.stringify({operation: 'VOTE', id: id}));
         var voteSpan = $(anchor).parent().find('.votes');
-        voteSpan.html(new Number(voteSpan.html()) + 1);
+        voteSpan.html(Number(voteSpan.html()) + 1);
         $(anchor).remove();
         return false;
     }
@@ -65,7 +67,7 @@ Showbot.Bot = (function ($) {
 	function connectSocket() {
 		if (connection == null || connection.readyState == 3) {
 			// Connect to the server and await feedback.
-            if (window.location.hostname == 'localhost') {
+            if (window.location.hostname == 'localhost' || window.location.hostname == '') {
                 connection = new WebSocket('ws://localhost:5001');
             } else {
 	            connection = new WebSocket('ws://thawing-bayou-3232.herokuapp.com:80');
@@ -84,6 +86,10 @@ Showbot.Bot = (function ($) {
                     var titles = packet.titles;
     				$('.titles tbody').empty();
                     var html = "";
+					
+					// Sort the titles by vote
+					titles = titles.sort(function(a,b){return b.votes - a.votes;});
+					
 					// Create all the rows
 					var titlesAlreadyVoted = [];
                     for (var i=0; i < titles.length; ++i) {
@@ -129,7 +135,6 @@ Showbot.Bot = (function ($) {
                     sortByVotes();
                 } else if (packet.operation == 'PONG') {
                     // NOOP
-                    console.log('PONG');
                 }
 			};
 
