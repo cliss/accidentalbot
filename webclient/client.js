@@ -53,4 +53,5 @@ $(function() {
 
   toggleSort();
   $('#votesColumn').on('click', toggleSort);
+  window.sortByVotes = sortByVotes;
 });
