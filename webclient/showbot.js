@@ -119,6 +119,7 @@ Showbot.Bot = (function ($) {
                 } else if (packet.operation == 'NEW') {
                     // New title
                     $('.titles tbody').append(titleRowTemplate(packet.title));
+                    sortByVotes();
                 } else if (packet.operation == 'NEWLINK') {
                     $('.links tbody').append(linkRowTemplate(packet.link));
                 } else if (packet.operation == 'VOTE') {
