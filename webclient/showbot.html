@@ -6,6 +6,7 @@
         <script src="/js/showbot.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
 
+        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <script id="titleRow" type="text/x-handlebars-template">
@@ -34,7 +35,7 @@
         <table class="titles">
             <thead>
                 <tr>
-                    <th>Votes</th>
+                    <th id="votesColumn">Votes</th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Time</th>
@@ -60,5 +61,6 @@
         <script type="text/javascript">
             Showbot.Bot.init();
         </script>
+        <script src="client.js"></script>
     </body>
 </html>
