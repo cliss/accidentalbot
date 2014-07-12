@@ -31,7 +31,11 @@ if (require.main === module) {
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
-        connection.send(JSON.stringify(packet));
+        try {
+            connection.send(JSON.stringify(packet));
+        } catch (e) {
+            console.log('sendToAll error: ' + e);
+        }
     });
 }
 
@@ -51,13 +55,16 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
+
+		var normalizedTitle = normalize(title);
+
         // Make sure this isn't a duplicate.
-        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
+        if (titles.findAll({normalized: normalizedTitle}).length === 0) {
             title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                titleLower: title.toLowerCase(),
+                normalized: normalizedTitle,
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -70,6 +77,14 @@ function handleNewSuggestion(from, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
         }
     }
+}
+
+function normalize(title) {
+	// Strip trailing periods from title
+	title = title.toLowerCase();
+	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+
+	return title;
 }
 
 function handleSendVotes(from, message) {
@@ -236,14 +251,14 @@ socketServer.on('connection', function(socket) {
     });
     socket.send(JSON.stringify({operation: 'REFRESH', titles: titlesWithVotes, links: links}));
 
-    socket.on('error', function(error) {
-        if (floodedBy(socket)) return;
-        console.error("Error from socket for " + address + ": " + error);
-    });
-
     socket.on('close', function () {
         console.log('Client disconnected: ' + address);
         connections.splice(connections.indexOf(socket), 1);
+    });
+
+    socket.on('error', function (reason, code) {
+        if (floodedBy(socket)) return;
+      console.log('socket error: reason ' + reason + ', code ' + code);
     });
 
     socket.on('message', function (data, flags) {
