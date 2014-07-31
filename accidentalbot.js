@@ -25,14 +25,20 @@ function sendToAll(packet) {
 }
 
 setInterval(saveBackup, 300000);
+if(process.env.RESTORE_BACKUP != undefined && process.env.RESTORE_BACKUP == 'true') restoreBackup();
 
 // saveBackup function saves the titles and links objects to pastebin
 function saveBackup() {
+	// See the pastebin API docs for info on generating these keys
+	if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+		console.log('API key or user key mia, can\'t make a backup');
+		return;
+	}
     var query = queryString.stringify({
-        'api_dev_key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Change to your pastebin API key
+        'api_dev_key': process.env.PASTEBIN_API_KEY,
         'api_option': 'paste',
         'api_paste_code': JSON.stringify({titles:titles,links:links}),
-        'api_user_key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' // Change to your pastebin API user key to backup directly to your account
+        'api_user_key': process.env.PASTEBIN_USER_KEY
     });
 
     var options = {
@@ -60,6 +66,16 @@ function saveBackup() {
 
     req.write(query);
     req.end();
+}
+
+function restoreBackup() {
+	if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+		console.log('API key or user key mia, can\'t restore backup');
+		return;
+	}
+	// Todo: Download pastebin backup and restore it
+	// Probably just iterate over backed up titles and links, adding
+	// them each in a similar way to handleNewSuggestion and handleNewLinks
 }
 
 function handleNewSuggestion(from, message) {
