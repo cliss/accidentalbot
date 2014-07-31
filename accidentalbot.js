@@ -26,6 +26,7 @@ function sendToAll(packet) {
 
 setInterval(saveBackup, 300000);
 
+// saveBackup function saves the titles and links objects to pastebin
 function saveBackup() {
     var query = queryString.stringify({
         'api_dev_key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Change to your pastebin API key
@@ -49,7 +50,7 @@ function saveBackup() {
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-			console.log('Backed up to ' + chunk + "\n");
+            console.log('Backed up to ' + chunk + "\n");
         });
     });
 
@@ -74,7 +75,7 @@ function handleNewSuggestion(from, message) {
     }
     if (title.length > 0) {
 
-		var normalizedTitle = normalize(title);
+        var normalizedTitle = normalize(title);
 
         // Make sure this isn't a duplicate.
         if (titles.findAll({normalized: normalizedTitle}).length === 0) {
@@ -98,11 +99,11 @@ function handleNewSuggestion(from, message) {
 }
 
 function normalize(title) {
-	// Strip trailing periods from title
-	title = title.toLowerCase();
-	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+    // Strip trailing periods from title
+    title = title.toLowerCase();
+    title = title.replace(/^[.\s]+|[.\s]+$/g, '');
 
-	return title;
+    return title;
 }
 
 function handleSendVotes(from, message) {
