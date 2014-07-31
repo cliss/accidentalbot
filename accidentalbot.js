@@ -60,14 +60,14 @@ function saveBackup() {
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         if(res.statusCode != 200) return;
-		var backup_url = '';
+        var backup_url = '';
         res.on('data', function (chunk) {
             backup_url = backup_url.concat(chunk);
         });
-		
-		res.on('end', function() {
-			console.log('Backed up to ' + backup_url);
-		});
+        
+        res.on('end', function() {
+            console.log('Backed up to ' + backup_url);
+        });
     });
 
     req.on('error', function(e) {
