@@ -3,6 +3,8 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var http = require('http');
+var queryString = require('querystring');
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
@@ -25,7 +27,38 @@ function sendToAll(packet) {
 setInterval(saveBackup, 300000);
 
 function saveBackup() {
-    // TODO: Figure out what to do here. Robbies on the job.
+    var query = queryString.stringify({
+        'api_dev_key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Change to your pastebin API key
+        'api_option': 'paste',
+        'api_paste_code': JSON.stringify({titles:titles,links:links}),
+        'api_user_key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' // Change to your pastebin API user key to backup directly to your account
+    });
+
+    var options = {
+        hostname: 'pastebin.com',
+        port: 80,
+        path: '/api/api_post.php',
+        method: 'POST',
+        headers: {
+            'Content-length': query.length,
+            'Host': 'pastebin.com',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+			console.log('Backed up to ' + chunk + "\n");
+        });
+    });
+
+    req.on('error', function(e) {
+        console.log('saveBackup error: ' + e);
+    });
+
+    req.write(query);
+    req.end();
 }
 
 function handleNewSuggestion(from, message) {
