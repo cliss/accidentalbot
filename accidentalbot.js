@@ -5,6 +5,8 @@ var irc = require('irc');
 var webSocket = require('ws');
 var http = require('http');
 var queryString = require('querystring');
+var url = require('url');
+var parseXMLString = require('xml2js').parseString;
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
@@ -29,16 +31,18 @@ if(process.env.RESTORE_BACKUP != undefined && process.env.RESTORE_BACKUP == 'tru
 
 // saveBackup function saves the titles and links objects to pastebin
 function saveBackup() {
-	// See the pastebin API docs for info on generating these keys
-	if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
-		console.log('API key or user key mia, can\'t make a backup');
-		return;
-	}
+    // See the pastebin API docs for info on generating these keys
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t make a backup');
+        return;
+    }
     var query = queryString.stringify({
+        'api_user_key': process.env.PASTEBIN_USER_KEY,
         'api_dev_key': process.env.PASTEBIN_API_KEY,
         'api_option': 'paste',
+        'api_paste_name': Date(),
         'api_paste_code': JSON.stringify({titles:titles,links:links}),
-        'api_user_key': process.env.PASTEBIN_USER_KEY
+        'api_paste_private': '1'
     });
 
     var options = {
@@ -55,8 +59,108 @@ function saveBackup() {
 
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
+        if(res.statusCode != 200) return;
+		var backup_url = '';
         res.on('data', function (chunk) {
-            console.log('Backed up to ' + chunk);
+            backup_url = backup_url.concat(chunk);
+        });
+		
+		res.on('end', function() {
+			console.log('Backed up to ' + backup_url);
+		});
+    });
+
+    req.on('error', function(e) {
+        console.log('saveBackup error: ' + e);
+    });
+
+    req.write(query);
+    req.end();
+}
+
+// Restores the most recent backup. It's big, fat, and ugly. Possible improvements to come.
+function restoreBackup() {
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t restore backup');
+        return;
+    }
+    
+    var query = queryString.stringify({
+        'api_user_key': process.env.PASTEBIN_USER_KEY,
+        'api_dev_key': process.env.PASTEBIN_API_KEY,
+        'api_option': 'list',
+        'api_results_limit': '1' // Fetches most recent paste from the account in use
+                                 // This account should only be used for backups
+    });
+
+    var options = {
+        hostname: 'pastebin.com',
+        port: 80,
+        path: '/api/api_post.php',
+        method: 'POST',
+        headers: {
+            'Content-length': query.length,
+            'Host': 'pastebin.com',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    };
+    
+    
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        if(res.statusCode != 200) return;
+        var paste_info = '';
+        res.on('data', function (chunk) {
+            paste_info = paste_info.concat(chunk);
+        });
+        
+        res.on('end',function() {
+            parseXMLString(paste_info, function (err, result) {
+                var options = {
+                    hostname: 'pastebin.com',
+                    port: 80,
+                    path: url.format({
+                        pathname: '/raw.php',
+                        search: queryString.stringify({i: result.paste.paste_key[0]})
+                    }),
+                    method: 'GET',
+                    headers: {'Host': 'pastebin.com'}
+                };
+                var req = http.request(options, function(res) {
+                    res.setEncoding('utf8');
+                    if(res.statusCode != 200) return;
+                    var backup_data = '';
+                    res.on('data', function (chunk) {
+                        backup_data = backup_data.concat(chunk);
+                    });
+                    
+                    res.on('end',function() {
+                        var backup_object = JSON.parse(backup_data);
+                        backup_object.titles.forEach(function(title) {
+                            title = {
+                                id: titles.length,
+                                author: title.author,
+                                title: title.title,
+                                normalized: title.normalized,
+                                votes: title.votes,
+                                votesBy: title.votesBy,
+                                time: title.time
+                            };
+                            titles.push(title); // Don't push title objects directly to avoid id clashes
+                        });
+                        backup_object.links.forEach(function(link) {
+                            var link = {
+                                id: links.length,
+                                author: links.author,
+                                link: link.link,
+                                time: link.time
+                            };
+                            links.push(link); // Don't push title objects directly to avoid id clashes
+                        });
+                    });
+                });
+                req.end();
+            });
         });
     });
 
@@ -69,13 +173,13 @@ function saveBackup() {
 }
 
 function restoreBackup() {
-	if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
-		console.log('API key or user key mia, can\'t restore backup');
-		return;
-	}
-	// Todo: Download pastebin backup and restore it
-	// Probably just iterate over backed up titles and links, adding
-	// them each in a similar way to handleNewSuggestion and handleNewLinks
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t restore backup');
+        return;
+    }
+    // Todo: Download pastebin backup and restore it
+    // Probably just iterate over backed up titles and links, adding
+    // them each in a similar way to handleNewSuggestion and handleNewLinks
 }
 
 function handleNewSuggestion(from, message) {
