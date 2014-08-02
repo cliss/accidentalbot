@@ -51,10 +51,65 @@ function saveBackup() {
 	});
 }
 
+// restoreBackup function restores titles and links from a pastebin backup
 function restoreBackup() {
-    // Rewriting this with a custom module, watch this space
+	if(process.env.RESTORE_BACKUP == undefined || process.env.RESTORE_BACKUP != 'true') return;
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t restore backup');
+        return;
+    }
+	
+	var pb = new pastebin(process.env.PASTEBIN_API_KEY);
+	options = {
+		userKey: process.env.PASTEBIN_USER_KEY,
+		action: 'list',
+		limit: '1'
+	};
+	pb.callAPI(options,function(resp,err) {
+		if(err) {
+			console.log(err); // Most likely not a big deal, just fail with a little error message
+			return;
+		}
+		parseXMLString(resp, function (err, result) {
+			if(err) {
+				console.log('Backup failed to parse ' + err);
+				return;
+			}
+			pb.getRawPaste({id:result.paste.paste_key[0]},function(resp,err) {
+				if(err) {
+					console.log(err); // Most likely not a big deal, just fail with a little message
+					return;
+				}
+				restoreBackupObject(JSON.parse(resp));
+			});
+		});
+	});
 }
 
+// Moves backed up data out of the backup object and into the links and titles objects
+function restoreBackupObject(backupObject) {
+	backupObject.titles.forEach(function(title) {
+		title = {
+			id: titles.length,
+			author: title.author,
+			title: title.title,
+			normalized: title.normalized,
+			votes: title.votes,
+			votesBy: title.votesBy,
+			time: title.time
+		};
+		titles.push(title); // Don't push title objects directly to avoid id clashes
+	});
+	backupObject.links.forEach(function(link) {
+		var link = {
+			id: links.length,
+			author: link.author,
+			link: link.link,
+			time: link.time
+		};
+		links.push(link); // Don't push title objects directly to avoid id clashes
+	});
+}
 
 function handleNewSuggestion(from, message) {
     var title = '';
