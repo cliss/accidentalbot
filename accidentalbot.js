@@ -26,8 +26,29 @@ function sendToAll(packet) {
 setInterval(saveBackup, 300000);
 restoreBackup();
 
+// saveBackup function saves the titles and links objects to pastebin
 function saveBackup() {
-    // Rewriting this with a custom module, watch this space
+    // See the pastebin API docs for info on generating these keys
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t make a backup');
+        return;
+    }
+	var pb = new pastebin(process.env.PASTEBIN_API_KEY);
+    
+	var options = {
+		userKey: process.env.PASTEBIN_USER_KEY,
+		name: Date(),
+		content: JSON.stringify({titles:titles,links:links}),
+		action: 'paste'
+	};
+	
+	pb.callAPI(options,function(resp,err) {
+		if(err) {
+			console.log(err); // Most likely not a big deal, just fail with a little error message
+			return;
+		}
+		console.log('Backed up to ' + resp);
+	});
 }
 
 function restoreBackup() {
