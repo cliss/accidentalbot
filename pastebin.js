@@ -1,3 +1,5 @@
+// Todo: Add error checking. Not sure how, thanks to the poorly designed pastebin api
+
 var util = require('util');
 var eventEmitter = require('events').EventEmitter;
 var queryString = require('querystring');
@@ -12,6 +14,7 @@ function pastebin(key) {
 };
 
 pastebin.prototype.callAPI = function(options,callback) {
+	
 	if(options.action === undefined) throw new Error('Missing non-optional option');
 	if(options.action === 'paste' && options.content === undefined) throw new Error('Missing non-optional option');
 	
@@ -39,6 +42,7 @@ pastebin.prototype.callAPI = function(options,callback) {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		}
 	};
+	
 	var req = http.request(httpOptions, function(res) {
 		if(res.statusCode != 200) {
 			callback('',new Error('Bad response code'));
@@ -50,6 +54,10 @@ pastebin.prototype.callAPI = function(options,callback) {
 		});
 		
 		res.on('end', function() {
+			if(response.indexOf('Bad API request') > -1) {
+				callback(response,new Error(response));
+				return;
+			}
 			callback(response);
 		});
 	});
