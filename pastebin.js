@@ -1,5 +1,3 @@
-// Todo: Add error checking. Not sure how, thanks to the poorly designed pastebin api
-
 var util = require('util');
 var eventEmitter = require('events').EventEmitter;
 var queryString = require('querystring');
