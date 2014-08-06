@@ -3,7 +3,7 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
-
+var pastebin = require('./nodebin');
 
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
