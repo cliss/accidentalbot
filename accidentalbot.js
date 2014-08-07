@@ -23,6 +23,7 @@ function sendToAll(packet) {
     });
 }
 
+// Backup stuff. Uses environment variables PASTEBIN_API_KEY and PASTEBIN_USER_KEY for the API and user keys.
 setInterval(saveBackup, 300000);
 restoreBackup();
 
@@ -52,6 +53,8 @@ function saveBackup() {
 }
 
 // restoreBackup function restores titles and links from a pastebin backup
+// If the BACKUP_PASTE_KEY environment variable is set, it will be used.
+// Otherwise the most recent paste from the user key will be used.
 function restoreBackup() {
 	if(process.env.RESTORE_BACKUP == undefined || process.env.RESTORE_BACKUP != 'true') return;
     if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
@@ -60,6 +63,18 @@ function restoreBackup() {
     }
 	
 	var pb = new pastebin(process.env.PASTEBIN_API_KEY);
+	
+	if(process.env.BACKUP_PASTE_KEY != undefined) {
+		pb.getRawPaste({pasteKey:process.env.BACKUP_PASTE_KEY},function(resp,err) {
+				if(err) {
+				console.log(err); // Most likely not a big deal, just fail with a little message
+				return;
+			}
+			restoreBackupObject(JSON.parse(resp));
+		});
+		return;
+	}
+	
 	options = {
 		userKey: process.env.PASTEBIN_USER_KEY,
 		action: 'list',
@@ -75,7 +90,7 @@ function restoreBackup() {
 				console.log('Backup failed to parse ' + err);
 				return;
 			}
-			pb.getRawPaste({id:result.paste.paste_key[0]},function(resp,err) {
+			pb.getRawPaste({pasteKey:result.paste.paste_key[0]},function(resp,err) {
 				if(err) {
 					console.log(err); // Most likely not a big deal, just fail with a little message
 					return;
