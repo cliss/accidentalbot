@@ -28,6 +28,8 @@ setInterval(saveBackup, 300000);
 restoreBackup();
 
 // saveBackup function saves the titles and links objects to pastebin
+// "The Rube Goldberg Machine of persistence" - John Siracusa
+// Todo: Replace with something better
 function saveBackup() {
     // See the pastebin API docs for info on generating these keys
     if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
