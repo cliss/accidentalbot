@@ -7,6 +7,9 @@ var webSocket = require('ws');
 var channel = '#atp';
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
+var BOT_LANG = 'en';
+
+var user_string = require('./lang/' + BOT_LANG + '.json');
 
 var titles = [];
 var connections = [];
@@ -35,8 +38,8 @@ function handleNewSuggestion(from, message) {
     }
 
     if (title.length > TITLE_LIMIT) {
-        client.say(from, 'That title is too long (over ' + TITLE_LIMIT +
-            ' characters); please try again.');
+        client.say(from, user_string['titletoolong'] + TITLE_LIMIT +
+            user_string['characterstryagain']);
         title = '';
     }
     if (title.length > 0) {
@@ -59,7 +62,7 @@ function handleNewSuggestion(from, message) {
             sendToAll({operation: 'NEW', title: title});
         } else {
             //client.say(channel, 'Sorry, ' + from + ', your title is a duplicate. Please try another!');
-            client.say(from, 'Sorry, your title is a duplicate. Please try another!');
+            client.say(from, user_string['duplicatetitle']);
         }
     }
 }
@@ -77,10 +80,10 @@ function handleSendVotes(from, message) {
         return t.votes;
     }, true).to(3);
 
-    client.say(from, 'Three most popular titles:');
+    client.say(from, user_string['threemostpopular']);
     for (var i = 0; i < titlesByVote.length; ++i) {
         var votes = titlesByVote[i]['votes'];
-        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
+        client.say(from, titlesByVote[i]['votes'] + ' ' + (votes != 1 ? user_string['votes'] : user_string['vote']) +  ': " ' + titlesByVote[i].title + '"');
     }
 }
 
@@ -102,17 +105,17 @@ function handleNewLink(from, message) {
 
         sendToAll({operation: 'NEWLINK', link: link});
     } else {
-        client.say(from, "That doesn't look like a link to me.");
+        client.say(from, user_string['notalink']);
     }
 }
 
 function handleHelp(from) {
-    client.say(from, 'Options:');
-    client.say(from, '!s {title} - suggest a title.');
-    client.say(from, '!votes - get the three most highly voted titles.');
-    client.say(from, '!link {URL} - suggest a link.');
-    client.say(from, '!help - see this message.');
-    client.say(from, 'To see titles/links, go to: ' + webAddress);
+    client.say(from, user_string['options']);
+    client.say(from, user_string['helpsuggest']);
+    client.say(from, user_string['helpvotes']);
+    client.say(from, user_string['helplink']);
+    client.say(from, user_string['helphelp']);
+    client.say(from, user_string['helpviewtitles'] + webAddress);
 }
 
 var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
