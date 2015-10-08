@@ -136,15 +136,25 @@ client.addListener('kick', function (channel, nick, by, reason) {
 });
 
 client.addListener('message', function (from, to, message) {
-    if (message.startsWith('!s')) {
-        handleNewSuggestion(from, message);
-    } else if (message.startsWith("!votes")) {
+    if (message.startsWith("!votes")) {
         handleSendVotes(from, message);
     } else if (message.startsWith('!l')) {
         handleNewLink(from, message);
     } else if (message.startsWith('!help')) {
         handleHelp(from);
     }
+});
+
+client.addListener('message#', function (from, to, message) {
+   if (message.startsWith("!s ")) {
+       handleNewSuggestion(from, message);
+   } 
+});
+
+client.addListener('pm', function (from, message) {
+   if (message.startsWith('!s')) {
+        client.say(from, "I'm sorry, suggestions can only be made in " + channel + ".");
+   } 
 });
 
 client.addListener('error', function (message) {
