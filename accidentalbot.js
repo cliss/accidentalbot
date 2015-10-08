@@ -4,7 +4,12 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = '#atp';
+var channel = process.env.CHANNEL;
+if (typeof channel === 'undefined') {
+    console.log('ERROR: Must speficy environment variable "CHANNEL"!');
+    process.exit();    
+}
+
 var webAddress = 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
