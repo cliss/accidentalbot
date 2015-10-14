@@ -3,6 +3,7 @@
 var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
+var pastebin = require('./nodebin');
 
 var channel = process.env.CHANNEL;
 if (typeof channel === 'undefined') {
@@ -27,10 +28,109 @@ function sendToAll(packet) {
     });
 }
 
+// Backup stuff. Uses environment variables PASTEBIN_API_KEY and PASTEBIN_USER_KEY for the API and user keys.
 setInterval(saveBackup, 300000);
+restoreBackup();
 
+// saveBackup function saves the titles and links objects to pastebin
+// "The Rube Goldberg Machine of persistence" - John Siracusa
+// Todo: Replace with something better
 function saveBackup() {
-    // TODO: Figure out what to do here.
+    // See the pastebin API docs for info on generating these keys
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t make a backup');
+        return;
+    }
+	var pb = new pastebin(process.env.PASTEBIN_API_KEY);
+    
+	var options = {
+		userKey: process.env.PASTEBIN_USER_KEY,
+		name: Date(),
+		content: JSON.stringify({titles:titles,links:links}),
+		action: 'paste'
+	};
+	
+	pb.callAPI(options,function(resp,err) {
+		if(err) {
+			console.log(err); // Most likely not a big deal, just fail with a little error message
+			return;
+		}
+		console.log('Backed up to ' + resp);
+	});
+}
+
+// restoreBackup function restores titles and links from a pastebin backup
+// If the BACKUP_PASTE_KEY environment variable is set, it will be used.
+// Otherwise the most recent paste from the user key will be used.
+function restoreBackup() {
+	if(process.env.RESTORE_BACKUP == undefined || process.env.RESTORE_BACKUP != 'true') return;
+    if(process.env.PASTEBIN_API_KEY == undefined || process.env.PASTEBIN_USER_KEY == undefined) {
+        console.log('API key or user key mia, can\'t restore backup');
+        return;
+    }
+	
+	var pb = new pastebin(process.env.PASTEBIN_API_KEY);
+	
+	if(process.env.BACKUP_PASTE_KEY != undefined) {
+		pb.getRawPaste({pasteKey:process.env.BACKUP_PASTE_KEY},function(resp,err) {
+				if(err) {
+				console.log(err); // Most likely not a big deal, just fail with a little message
+				return;
+			}
+			restoreBackupObject(JSON.parse(resp));
+		});
+		return;
+	}
+	
+	options = {
+		userKey: process.env.PASTEBIN_USER_KEY,
+		action: 'list',
+		limit: '1'
+	};
+	pb.callAPI(options,function(resp,err) {
+		if(err) {
+			console.log(err); // Most likely not a big deal, just fail with a little error message
+			return;
+		}
+		parseXMLString(resp, function (err, result) {
+			if(err) {
+				console.log('Backup failed to parse ' + err);
+				return;
+			}
+			pb.getRawPaste({pasteKey:result.paste.paste_key[0]},function(resp,err) {
+				if(err) {
+					console.log(err); // Most likely not a big deal, just fail with a little message
+					return;
+				}
+				restoreBackupObject(JSON.parse(resp));
+			});
+		});
+	});
+}
+
+// Moves backed up data out of the backup object and into the links and titles objects
+function restoreBackupObject(backupObject) {
+	backupObject.titles.forEach(function(title) {
+		title = {
+			id: titles.length,
+			author: title.author,
+			title: title.title,
+			normalized: title.normalized,
+			votes: title.votes,
+			votesBy: title.votesBy,
+			time: title.time
+		};
+		titles.push(title); // Don't push title objects directly to avoid id clashes
+	});
+	backupObject.links.forEach(function(link) {
+		var link = {
+			id: links.length,
+			author: link.author,
+			link: link.link,
+			time: link.time
+		};
+		links.push(link); // Don't push title objects directly to avoid id clashes
+	});
 }
 
 function handleNewSuggestion(from, message) {
@@ -46,7 +146,7 @@ function handleNewSuggestion(from, message) {
     }
     if (title.length > 0) {
 
-		var normalizedTitle = normalize(title);
+        var normalizedTitle = normalize(title);
 
         // Make sure this isn't a duplicate.
         if (titles.findAll({normalized: normalizedTitle}).length === 0) {
@@ -70,11 +170,11 @@ function handleNewSuggestion(from, message) {
 }
 
 function normalize(title) {
-	// Strip trailing periods from title
-	title = title.toLowerCase();
-	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+    // Strip trailing periods from title
+    title = title.toLowerCase();
+    title = title.replace(/^[.\s]+|[.\s]+$/g, '');
 
-	return title;
+    return title;
 }
 
 function handleSendVotes(from, message) {
