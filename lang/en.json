@@ -1,0 +1,15 @@
+{
+	"titletoolong": "That title is too long (over ",
+	"characterstryagain": " characters); please try again.",
+	"duplicatetitle": "Sorry, your title is a duplicate. Please try another!",
+	"threemostpopular": "Three most popular titles:",
+	"vote": "vote",
+	"votes": "votes",
+	"notalink": "That doesn't look like a link to me.",
+	"options": "Options:",
+	"helpsuggest": "!s {title} - suggest a title.",
+	"helpvotes": "!votes - get the three most highly voted titles.",
+	"helplink": "!link {URL} - suggest a link.",
+	"helphelp": "!help - see this message.",
+	"helpviewtitles": "To see titles/links, go to: "
+}

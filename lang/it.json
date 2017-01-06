@@ -1,0 +1,15 @@
+{
+	"titletoolong": "Quel titolo è troppo lungo (oltre ",
+	"characterstryagain": " caratteri); riprova.",
+	"duplicatetitle": "Mi spiace, il tuo titolo è un duplicato. Provane un altro!",
+	"threemostpopular": "I tre titoli più popolari:",
+	"vote": "voto",
+	"votes": "voti",
+	"notalink": "Quello non mi sembra un link.",
+	"options": "Opzioni:",
+	"helpsuggest": "!s {titolo} - suggerisci un titolo.",
+	"helpvotes": "!votes - ottieni i tre titoli più votati.",
+	"helplink": "!link {URL} - suggerisci un link.",
+	"helphelp": "!help - guarda questo messaggio.",
+	"helpviewtitles": "Per vedere i titoli/link, vai su: "
+}
