@@ -72,7 +72,7 @@ function handleNewSuggestion(from, message) {
 function normalize(title) {
 	// Strip trailing periods from title
 	title = title.toLowerCase();
-	title = title.replace(/^[.\s]+|[.\s]+$/g, '');
+	title = title.replace(/[^a-zA-Z0-9]+/g, '');
 
 	return title;
 }
