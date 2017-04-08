@@ -63,8 +63,11 @@ function handleNewSuggestion(from, message) {
 
             sendToAll({operation: 'NEW', title: title});
         } else {
-            //client.say(channel, 'Sorry, ' + from + ', your title is a duplicate. Please try another!');
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
+            // Count this as a vote, since that's sorta what it is.
+            if (foundTitles.length === 1) {
+                foundTitles[0].vodes++;
+            }
         }
     }
 }
@@ -113,16 +116,25 @@ function handleNewLink(from, message) {
 
 function handleHelp(from) {
     client.say(from, 'Options:');
-    client.say(from, '!s {title} - suggest a title.');
+    client.say(from, '!s {title} - suggest a title (in ' + channel + ' only).');
     client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
 }
 
-var client = new irc.Client('irc.freenode.net', 'accidentalbot', {
-    channels: [channel]
-});
+var options = {
+    channels: [channel],
+    showErrors: true,
+    userName: 'Accidentalbot',
+    realName: 'Accidentalbot IRC Robot'
+}
+if (typeof process.env.PASSWORD !== "undefined") {
+    options.sasl = true;
+    options.password = process.env.PASSWORD;
+}
+
+var client = new irc.Client('chat.freenode.net', 'accidentalbot', options);
 
 client.addListener('join', function (channel, nick, message) {
     if (nick === client.nick) {
