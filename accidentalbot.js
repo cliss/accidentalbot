@@ -66,7 +66,7 @@ function handleNewSuggestion(from, message) {
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
             // Count this as a vote, since that's sorta what it is.
             if (foundTitles.length === 1) {
-                foundTitles[0].vodes++;
+                foundTitles[0].votes++;
             }
         }
     }
