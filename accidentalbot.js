@@ -4,13 +4,9 @@ var sugar = require('sugar');
 var irc = require('irc');
 var webSocket = require('ws');
 
-var channel = process.env.CHANNEL;
-if (typeof channel === 'undefined') {
-    console.log('ERROR: Must speficy environment variable "CHANNEL"!');
-    process.exit();    
-}
-
-var webAddress = 'http://www.caseyliss.com/showbot';
+var channel = process.env.IRC_CHANNEL || '#atp';
+var nick = process.env.IRC_NICK || 'accidentalbot';
+var webAddress = process.env.CLIENT_URL || 'http://www.caseyliss.com/showbot';
 var TITLE_LIMIT = 75;
 
 var titles = [];
@@ -19,15 +15,9 @@ var links = [];
 
 function sendToAll(packet) {
     connections.forEach(function (connection) {
-        try {
-            connection.send(JSON.stringify(packet));
-        } catch (e) {
-            console.log('sendToAll error: ' + e);
-        }
+        connection.send(JSON.stringify(packet));
     });
 }
-
-setInterval(saveBackup, 300000);
 
 function saveBackup() {
     // TODO: Figure out what to do here.
@@ -45,16 +35,13 @@ function handleNewSuggestion(from, message) {
         title = '';
     }
     if (title.length > 0) {
-
-		var normalizedTitle = normalize(title);
-
         // Make sure this isn't a duplicate.
-        if (titles.findAll({normalized: normalizedTitle}).length === 0) {
+        if (titles.findAll({titleLower: title.toLowerCase()}).length === 0) {
             title = {
                 id: titles.length,
                 author: from,
                 title: title,
-                normalized: normalizedTitle,
+                titleLower: title.toLowerCase(),
                 votes: 0,
                 votesBy: [],
                 time: new Date()
@@ -63,21 +50,10 @@ function handleNewSuggestion(from, message) {
 
             sendToAll({operation: 'NEW', title: title});
         } else {
+            //client.say(channel, 'Sorry, ' + from + ', your title is a duplicate. Please try another!');
             client.say(from, 'Sorry, your title is a duplicate. Please try another!');
-            // Count this as a vote, since that's sorta what it is.
-            if (foundTitles.length === 1) {
-                foundTitles[0].votes++;
-            }
         }
     }
-}
-
-function normalize(title) {
-	// Strip trailing periods from title
-	title = title.toLowerCase();
-	title = title.replace(/[^a-zA-Z0-9]+/g, '');
-
-	return title;
 }
 
 function handleSendVotes(from, message) {
@@ -88,7 +64,7 @@ function handleSendVotes(from, message) {
     client.say(from, 'Three most popular titles:');
     for (var i = 0; i < titlesByVote.length; ++i) {
         var votes = titlesByVote[i]['votes'];
-        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': " ' + titlesByVote[i].title + '"');
+        client.say(from, titlesByVote[i]['votes'] + ' vote' + (votes != 1 ? 's' : '') +  ': "' + titlesByVote[i].title + '"');
     }
 }
 
@@ -116,62 +92,32 @@ function handleNewLink(from, message) {
 
 function handleHelp(from) {
     client.say(from, 'Options:');
-    client.say(from, '!s {title} - suggest a title (in ' + channel + ' only).');
+    client.say(from, '!s {title} - suggest a title.');
     client.say(from, '!votes - get the three most highly voted titles.');
     client.say(from, '!link {URL} - suggest a link.');
     client.say(from, '!help - see this message.');
     client.say(from, 'To see titles/links, go to: ' + webAddress);
 }
 
-var options = {
-    channels: [channel],
-    showErrors: true,
-    userName: 'Accidentalbot',
-    realName: 'Accidentalbot IRC Robot'
-}
-if (typeof process.env.PASSWORD !== "undefined") {
-    options.sasl = true;
-    options.password = process.env.PASSWORD;
-}
-
-var client = new irc.Client('chat.freenode.net', 'accidentalbot', options);
+var client = new irc.Client('irc.freenode.net', nick, {
+    channels: [channel]
+});
 
 client.addListener('join', function (channel, nick, message) {
-    if (nick === client.nick) {
-        console.log("Joined channel " + channel + ".");
-    }
-});
-
-client.addListener('connect', function() {
-    console.log("Connected to IRC.");
-});
-
-client.addListener('kick', function (channel, nick, by, reason) {
-    if (nick === client.nick) {
-        console.log("Kicked from channel " + channel + " by " + by + " because " + reason + ".");
-    }
+    console.log('Joined channel ' + channel);
+    setInterval(saveBackup, 300000);
 });
 
 client.addListener('message', function (from, to, message) {
-    if (message.startsWith("!votes")) {
+    if (message.startsWith('!s')) {
+        handleNewSuggestion(from, message);
+    } else if (message.startsWith("!votes")) {
         handleSendVotes(from, message);
     } else if (message.startsWith('!l')) {
         handleNewLink(from, message);
     } else if (message.startsWith('!help')) {
         handleHelp(from);
     }
-});
-
-client.addListener('message#', function (from, to, message) {
-   if (message.startsWith("!s ")) {
-       handleNewSuggestion(from, message);
-   } 
-});
-
-client.addListener('pm', function (from, message) {
-   if (message.startsWith('!s')) {
-        client.say(from, "I'm sorry, suggestions can only be made in " + channel + ".");
-   } 
 });
 
 client.addListener('error', function (message) {
@@ -279,10 +225,6 @@ socketServer.on('connection', function(socket) {
         connections.splice(connections.indexOf(socket), 1);
     });
 
-    socket.on('error', function (reason, code) {
-      console.log('socket error: reason ' + reason + ', code ' + code);
-    });
-
     socket.on('message', function (data, flags) {
         if (floodedBy(socket)) return;
 
@@ -291,14 +233,7 @@ socketServer.on('connection', function(socket) {
             return;
         }
 
-        var packet;
-        try {
-            packet = JSON.parse(data);
-        } catch (e) {
-            console.log('error: malformed JSON message (' + e + '): '+ data);
-            return;
-        }
-
+        var packet = JSON.parse(data);
         if (packet.operation === 'VOTE') {
             var matches = titles.findAll({id: packet['id']});
 
