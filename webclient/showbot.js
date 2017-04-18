@@ -105,7 +105,7 @@ Showbot.Bot = (function ($) {
 					// Remove all the anchors for already voted titles
 					console.log(JSON.stringify(titlesAlreadyVoted));
 					for (var i=0; i < titlesAlreadyVoted.length; ++i) {
-						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('a').remove();
+						$('tr[data-id=' + titlesAlreadyVoted[i] + ']').find('button').remove();
 					}
 
 					// Show the table
