@@ -1,0 +1,7 @@
+.sortedDescending:after {
+  content: "\2193";
+}
+
+.sortedAscending:after {
+  content: '\2191';
+}

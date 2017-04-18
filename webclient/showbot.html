@@ -7,6 +7,7 @@
         <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body class="container-fluid">
         <script id="titleRow" type="text/x-handlebars-template">
@@ -35,7 +36,7 @@
         <table class="titles table table-striped">
             <thead>
                 <tr>
-                    <th>Votes</th>
+                    <th id="votesColumn">Votes</th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Time</th>
@@ -61,5 +62,6 @@
         <script type="text/javascript">
             Showbot.Bot.init();
         </script>
+        <script src="client.js"></script>
     </body>
 </html>

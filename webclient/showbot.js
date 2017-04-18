@@ -125,12 +125,14 @@ Showbot.Bot = (function ($) {
                 } else if (packet.operation == 'NEW') {
                     // New title
                     $('.titles tbody').append(titleRowTemplate(packet.title));
+                    sortByVotes();
                 } else if (packet.operation == 'NEWLINK') {
                     $('.links tbody').append(linkRowTemplate(packet.link));
                 } else if (packet.operation == 'VOTE') {
                     // Modify a vote
                     var row = $('tr[data-id=' + packet.id + ']');
                     var span = $(row).find('.votes').html(packet.votes);
+                    sortByVotes();
                 } else if (packet.operation == 'PONG') {
                     // NOOP
                 }
