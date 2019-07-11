@@ -35,6 +35,7 @@ function saveBackup() {
 
 function handleNewSuggestion(from, message) {
     var title = '';
+    var ignore_list = [/of siracusa county/i,];
     if (message.match(/^!s(?:uggest)?\s+(.+)/)) {
         title = RegExp.$1.compact();
     }
@@ -44,6 +45,14 @@ function handleNewSuggestion(from, message) {
             ' characters); please try again.');
         title = '';
     }
+
+    for(var idx in ignore_list) {
+        if(message.match(ignore_list[idx])) {
+            client.say(from, 'Please don\'t suggest that.');
+            title = '';
+        }
+    }
+	
     if (title.length > 0) {
 
 		var normalizedTitle = normalize(title);
