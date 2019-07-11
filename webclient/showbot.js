@@ -42,7 +42,7 @@ Showbot.Bot = (function ($) {
         var link = $(anchor).attr('href');
         var answer = confirm("Tread carefully; these links aren't checked for safety!\nWould you like to go to the following URL?\n\n" + link);
         if (answer) {
-            window.location = link;
+            window.open(link);
         }
         return false;
     }
