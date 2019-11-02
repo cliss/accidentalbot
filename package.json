@@ -19,7 +19,7 @@
   "dependencies": {
       "irc-upd": "^0.10.0",
       "sugar": "^1.4.1",
-      "ws": "^1.0.1"
+      "ws": "^7.2.0"
   },
   "repository": {
       "type": "git",
